@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SalonAI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'Segoe UI', 'sans-serif']
+          },
+          boxShadow: {
+            premium: "0 10px 40px rgba(0,0,0,0.08)",
+            soft: "0 6px 24px rgba(0,0,0,0.05)"
+          }
+        }
+      }
+    };
+  </script>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(14px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes floatSlow {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-12px); }
+    }
+
+    .fade-up {
+      animation: fadeUp 550ms ease-out;
+    }
+
+    .float-slow {
+      animation: floatSlow 7s ease-in-out infinite;
+    }
+  </style>
+</head>
+<body class="bg-white text-black antialiased selection:bg-black selection:text-white">
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useMemo, useState } = React;
+
+    const PRICING_PLANS = [
+      { name: "Solo", price: 19, description: "For independent stylists managing one chair." },
+      { name: "Small", price: 49, description: "For compact salons with a growing team." },
+      { name: "Pro", price: 99, description: "For established salons scaling operations." },
+      { name: "Enterprise", price: 199, description: "For multi-location businesses with custom needs." }
+    ];
+
+    const APPOINTMENTS = [
+      { time: "09:00", client: "Emma Johnson", service: "Haircut + Styling", staff: "Lena" },
+      { time: "10:30", client: "Sophie Carter", service: "Color Refresh", staff: "Maya" },
+      { time: "13:00", client: "Olivia Brown", service: "Nail Care", staff: "Nora" },
+      { time: "15:30", client: "Ava Wilson", service: "Facial Treatment", staff: "Iris" }
+    ];
+
+    const STAFF_LOAD = [
+      { name: "Lena", load: "88%" },
+      { name: "Maya", load: "72%" },
+      { name: "Nora", load: "65%" },
+      { name: "Iris", load: "58%" }
+    ];
+
+    const AI_MESSAGES = [
+      "Booking demand is highest between 10:00 and 13:00 this week.",
+      "Recommend adding one extra color slot on Thursday.",
+      "Client return rate improved by 9% compared to last month."
+    ];
+
+    const ICONS = {
+      spark: (
+        <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8">
+          <path d="M12 3l1.6 4.4L18 9l-4.4 1.6L12 15l-1.6-4.4L6 9l4.4-1.6L12 3z" />
+        </svg>
+      ),
+      chart: (
+        <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8">
+          <path d="M4 20h16M7 16l3-4 3 2 4-6" />
+          <circle cx="7" cy="16" r="1.2" fill="currentColor" />
+          <circle cx="10" cy="12" r="1.2" fill="currentColor" />
+          <circle cx="13" cy="14" r="1.2" fill="currentColor" />
+          <circle cx="17" cy="8" r="1.2" fill="currentColor" />
+        </svg>
+      ),
+      users: (
+        <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8">
+          <circle cx="9" cy="8" r="3" />
+          <path d="M4 19c0-3 2.2-5 5-5s5 2 5 5" />
+          <circle cx="17.5" cy="9" r="2.2" />
+          <path d="M15.5 19c.3-1.8 1.7-3 3.7-3 1.1 0 2.1.4 2.8 1.1" />
+        </svg>
+      ),
+      bell: (
+        <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8">
+          <path d="M6 16h12l-1.2-1.5V10a4.8 4.8 0 10-9.6 0v4.5L6 16z" />
+          <path d="M10 18a2 2 0 004 0" />
+        </svg>
+      ),
+      shield: (
+        <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8">
+          <path d="M12 3l7 3v5c0 5-3 8-7 10-4-2-7-5-7-10V6l7-3z" />
+        </svg>
+      ),
+      clock: (
+        <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8">
+          <circle cx="12" cy="12" r="8" />
+          <path d="M12 8v5l3 2" />
+        </svg>
+      )
+    };
+
+    function Container({ children, className = "" }) {
+      return <div className={"mx-auto w-full max-w-7xl px-6 md:px-10 " + className}>{children}</div>;
+    }
+
+    function IconBadge({ icon }) {
+      return (
+        <div className="flex h-9 w-9 items-center justify-center rounded-full border border-black/10 bg-white text-black/80 shadow-soft">
+          {icon}
+        </div>
+      );
+    }
+
+    function Navigation({ page, setPage }) {
+      const navItems = [
+        { key: "landing", label: "Landing" },
+        { key: "login", label: "Google Login" },
+        { key: "dashboard", label: "Owner Dashboard" },
+        { key: "booking", label: "Client Booking" }
+      ];
+
+      return (
+        <header className="sticky top-0 z-30 border-b border-black/10 bg-white/80 backdrop-blur-xl">
+          <Container>
+            <div className="flex min-h-20 items-center justify-between gap-4">
+              <button onClick={() => setPage("landing")} className="flex items-center gap-2 text-lg font-semibold tracking-tight transition hover:opacity-80">
+                <span className="inline-block h-2.5 w-2.5 rounded-full bg-gradient-to-br from-black to-neutral-500"></span>
+                SalonAI
+              </button>
+              <nav className="flex flex-wrap items-center gap-2">
+                {navItems.map((item) => {
+                  const active = page === item.key;
+                  return (
+                    <button
+                      key={item.key}
+                      onClick={() => setPage(item.key)}
+                      className={
+                        "rounded-full px-4 py-2 text-sm font-medium transition-all duration-300 " +
+                        (active
+                          ? "bg-black text-white shadow-soft"
+                          : "border border-black/15 text-black/80 hover:border-black hover:bg-black hover:text-white")
+                      }
+                    >
+                      {item.label}
+                    </button>
+                  );
+                })}
+              </nav>
+            </div>
+          </Container>
+        </header>
+      );
+    }
+
+    function LandingPage({ setPage }) {
+      const features = [
+        { title: "Smart Scheduling", text: "Reduce no-shows and fill open slots automatically.", icon: ICONS.clock },
+        { title: "Revenue Insights", text: "Understand demand and optimize services in real time.", icon: ICONS.chart },
+        { title: "Client Retention", text: "Use AI nudges to bring clients back consistently.", icon: ICONS.users },
+        { title: "AI Concierge", text: "Get proactive recommendations every morning.", icon: ICONS.spark }
+      ];
+
+      return (
+        <main className="pb-20 pt-8 md:pb-28 md:pt-12">
+          <Container className="fade-up">
+            <section className="relative overflow-hidden rounded-[2.25rem] border border-black/10 bg-gradient-to-b from-white via-neutral-50 to-white px-7 pb-10 pt-14 shadow-premium md:px-14 md:pt-20">
+              <div className="pointer-events-none absolute -left-20 -top-20 h-72 w-72 rounded-full bg-gradient-to-br from-zinc-200 to-transparent blur-3xl"></div>
+              <div className="pointer-events-none absolute -right-24 top-8 h-72 w-72 rounded-full bg-gradient-to-bl from-zinc-300/60 to-transparent blur-3xl float-slow"></div>
+              <div className="pointer-events-none absolute bottom-[-70px] left-1/3 h-52 w-52 rounded-full bg-gradient-to-tr from-neutral-200/70 to-transparent blur-3xl"></div>
+
+              <div className="relative max-w-4xl space-y-7">
+                <p className="text-xs font-medium uppercase tracking-[0.3em] text-black/45">Beauty operations, reimagined</p>
+                <h1 className="text-4xl font-semibold leading-[1.03] tracking-[-0.03em] md:text-7xl">
+                  SalonAI
+                  <span className="block bg-gradient-to-r from-black via-neutral-700 to-neutral-500 bg-clip-text text-transparent">
+                    software that feels premium.
+                  </span>
+                </h1>
+                <p className="max-w-2xl text-base leading-relaxed text-black/70 md:text-xl">
+                  Designed for modern salon teams. Predict demand, manage staff workload, and deliver seamless booking in one elegant platform.
+                </p>
+                <div className="flex flex-wrap gap-3">
+                  <button
+                    onClick={() => setPage("login")}
+                    className="rounded-full bg-black px-7 py-3 text-sm font-medium text-white shadow-soft transition-all duration-300 hover:-translate-y-0.5 hover:opacity-90"
+                  >
+                    Start with Google
+                  </button>
+                  <button
+                    onClick={() => setPage("booking")}
+                    className="rounded-full border border-black/20 bg-white/80 px-7 py-3 text-sm font-medium text-black transition-all duration-300 hover:-translate-y-0.5 hover:border-black"
+                  >
+                    Client Booking Demo
+                  </button>
+                </div>
+              </div>
+
+              <section className="relative mt-14 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                {features.map((feature) => (
+                  <article key={feature.title} className="rounded-2xl border border-black/10 bg-white/75 p-5 backdrop-blur transition-all duration-300 hover:-translate-y-1 hover:shadow-soft">
+                    <IconBadge icon={feature.icon} />
+                    <h3 className="mt-4 text-base font-semibold tracking-tight">{feature.title}</h3>
+                    <p className="mt-2 text-sm leading-relaxed text-black/65">{feature.text}</p>
+                  </article>
+                ))}
+              </section>
+            </section>
+
+            <section className="mt-12 md:mt-16">
+              <div className="mb-7 md:mb-10">
+                <p className="text-xs font-medium uppercase tracking-[0.28em] text-black/45">Pricing</p>
+                <h2 className="mt-3 text-3xl font-semibold tracking-[-0.02em] md:text-5xl">Choose your growth plan.</h2>
+              </div>
+              <section className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+                {PRICING_PLANS.map((plan) => {
+                  const isFeatured = plan.name === "Pro";
+                  return (
+                    <article
+                      key={plan.name}
+                      className={
+                        "group relative overflow-hidden rounded-3xl border p-7 transition-all duration-300 hover:-translate-y-1 " +
+                        (isFeatured
+                          ? "border-black bg-black text-white shadow-premium"
+                          : "border-black/15 bg-gradient-to-b from-white to-neutral-50 hover:shadow-soft")
+                      }
+                    >
+                      {!isFeatured && (
+                        <div className="pointer-events-none absolute -top-10 right-0 h-28 w-28 rounded-full bg-gradient-to-br from-neutral-300/60 to-transparent blur-2xl"></div>
+                      )}
+                      <div className="relative">
+                        <div className="flex items-center justify-between">
+                          <h3 className="text-xl font-semibold tracking-tight">{plan.name}</h3>
+                          <span className={"rounded-full px-2.5 py-1 text-[11px] font-semibold " + (isFeatured ? "bg-white text-black" : "border border-black/15 text-black/65")}>
+                            {isFeatured ? "Most Popular" : "SalonAI"}
+                          </span>
+                        </div>
+                        <p className="mt-5 text-5xl font-semibold tracking-tight">${plan.price}</p>
+                        <p className={"mt-1 text-sm " + (isFeatured ? "text-white/75" : "text-black/60")}>per month</p>
+                        <p className={"mt-5 text-sm leading-relaxed " + (isFeatured ? "text-white/85" : "text-black/70")}>
+                          {plan.description}
+                        </p>
+                        <button
+                          className={
+                            "mt-8 w-full rounded-full px-4 py-2.5 text-sm font-medium transition-all duration-300 " +
+                            (isFeatured
+                              ? "bg-white text-black hover:opacity-90"
+                              : "border border-black/20 bg-white hover:border-black hover:bg-black hover:text-white")
+                          }
+                        >
+                          Choose {plan.name}
+                        </button>
+                      </div>
+                    </article>
+                  );
+                })}
+              </section>
+            </section>
+          </Container>
+        </main>
+      );
+    }
+
+    function GoogleLoginPage({ setPage }) {
+      return (
+        <main className="py-20 md:py-28">
+          <Container className="fade-up">
+            <section className="relative mx-auto w-full max-w-md overflow-hidden rounded-3xl border border-black/10 bg-gradient-to-b from-white to-neutral-50 p-8 shadow-premium md:p-10">
+              <div className="pointer-events-none absolute -right-6 -top-8 h-28 w-28 rounded-full bg-gradient-to-bl from-neutral-300/70 to-transparent blur-2xl"></div>
+              <h1 className="text-3xl font-semibold tracking-[-0.02em]">Sign in to SalonAI</h1>
+              <p className="mt-3 text-sm leading-relaxed text-black/65">Continue with your Google account to access salon analytics and admin tools.</p>
+
+              <button
+                onClick={() => setPage("dashboard")}
+                className="mt-8 flex w-full items-center justify-center gap-3 rounded-full border border-black/20 bg-white px-4 py-3 text-sm font-medium transition-all duration-300 hover:-translate-y-0.5 hover:border-black hover:bg-black hover:text-white"
+              >
+                {ICONS.shield}
+                Continue with Google
+              </button>
+
+              <p className="mt-5 text-center text-xs text-black/50">
+                By continuing, you agree to SalonAI Terms and Privacy Policy.
+              </p>
+            </section>
+          </Container>
+        </main>
+      );
+    }
+
+    function OwnerDashboardPage() {
+      return (
+        <main className="py-14 md:py-20">
+          <Container className="fade-up">
+            <section className="space-y-8">
+              <div>
+                <p className="text-xs font-medium uppercase tracking-[0.25em] text-black/45">Operations</p>
+                <h1 className="mt-3 text-3xl font-semibold tracking-[-0.02em] md:text-5xl">Owner Dashboard</h1>
+                <p className="mt-2 text-black/65">Today at a glance.</p>
+              </div>
+
+              <div className="grid gap-5 md:grid-cols-3">
+                <article className="rounded-3xl border border-black/10 bg-gradient-to-b from-white to-neutral-50 p-6 shadow-soft transition hover:-translate-y-1">
+                  <div className="flex items-center gap-2 text-black/70"><IconBadge icon={ICONS.clock} /></div>
+                  <p className="mt-4 text-sm text-black/60">Today's appointments</p>
+                  <p className="mt-2 text-4xl font-semibold">24</p>
+                </article>
+                <article className="rounded-3xl border border-black/10 bg-gradient-to-b from-white to-neutral-50 p-6 shadow-soft transition hover:-translate-y-1">
+                  <div className="flex items-center gap-2 text-black/70"><IconBadge icon={ICONS.chart} /></div>
+                  <p className="mt-4 text-sm text-black/60">Staff workload avg.</p>
+                  <p className="mt-2 text-4xl font-semibold">71%</p>
+                </article>
+                <article className="rounded-3xl border border-black/10 bg-gradient-to-b from-white to-neutral-50 p-6 shadow-soft transition hover:-translate-y-1">
+                  <div className="flex items-center gap-2 text-black/70"><IconBadge icon={ICONS.users} /></div>
+                  <p className="mt-4 text-sm text-black/60">New clients this month</p>
+                  <p className="mt-2 text-4xl font-semibold">48</p>
+                </article>
+              </div>
+
+              <div className="grid gap-5 lg:grid-cols-2">
+                <article className="rounded-3xl border border-black/10 bg-white p-6 shadow-soft">
+                  <h2 className="text-lg font-semibold tracking-tight">Today's Appointments</h2>
+                  <ul className="mt-4 space-y-3 text-sm">
+                    {APPOINTMENTS.map((appt) => (
+                      <li key={appt.time + appt.client} className="rounded-2xl border border-black/10 p-3 transition-all duration-300 hover:border-black/20 hover:bg-neutral-50">
+                        <p className="font-medium">{appt.time} - {appt.client}</p>
+                        <p className="text-black/65">{appt.service} with {appt.staff}</p>
+                      </li>
+                    ))}
+                  </ul>
+                </article>
+
+                <article className="rounded-3xl border border-black/10 bg-white p-6 shadow-soft">
+                  <h2 className="text-lg font-semibold tracking-tight">Staff Workload</h2>
+                  <ul className="mt-4 space-y-3 text-sm">
+                    {STAFF_LOAD.map((member) => (
+                      <li key={member.name} className="flex items-center justify-between rounded-2xl border border-black/10 p-3 transition-all duration-300 hover:border-black/20 hover:bg-neutral-50">
+                        <span>{member.name}</span>
+                        <span className="font-medium">{member.load}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </article>
+              </div>
+
+              <article className="rounded-3xl border border-black/10 bg-gradient-to-r from-black to-neutral-800 p-6 text-white shadow-premium">
+                <div className="flex items-center gap-2">
+                  <IconBadge icon={ICONS.bell} />
+                  <h2 className="text-lg font-semibold tracking-tight">AI Admin Messages</h2>
+                </div>
+                <ul className="mt-4 space-y-2 text-sm text-black/80">
+                  {AI_MESSAGES.map((msg) => (
+                    <li key={msg} className="rounded-2xl border border-white/20 bg-white/10 px-3 py-2 text-white/90">
+                      {msg}
+                    </li>
+                  ))}
+                </ul>
+              </article>
+            </section>
+          </Container>
+        </main>
+      );
+    }
+
+    function ClientBookingPage() {
+      const staff = ["Lena", "Maya", "Nora", "Iris"];
+      const times = ["09:00", "10:00", "11:30", "13:00", "14:30", "16:00", "17:30"];
+
+      const [selectedStaff, setSelectedStaff] = useState(staff[0]);
+      const [selectedTime, setSelectedTime] = useState(times[0]);
+      const [name, setName] = useState("");
+      const [phone, setPhone] = useState("");
+      const canBook = useMemo(() => name.trim() && phone.trim(), [name, phone]);
+
+      function submitBooking(event) {
+        event.preventDefault();
+        if (!canBook) return;
+        alert("Booking confirmed. See you soon!");
+      }
+
+      return (
+        <main className="py-20 md:py-28">
+          <Container className="fade-up">
+            <section className="relative mx-auto w-full max-w-2xl overflow-hidden rounded-3xl border border-black/10 bg-gradient-to-b from-white to-neutral-50 p-8 shadow-premium md:p-10">
+              <div className="pointer-events-none absolute -left-8 top-0 h-28 w-28 rounded-full bg-gradient-to-br from-neutral-300/70 to-transparent blur-2xl"></div>
+              <h1 className="text-3xl font-semibold tracking-[-0.02em]">Book an Appointment</h1>
+              <p className="mt-2 text-sm text-black/65">No registration required.</p>
+
+              <form onSubmit={submitBooking} className="mt-8 space-y-6">
+                <div>
+                  <label className="mb-2 block text-sm font-medium">Select Staff</label>
+                  <select
+                    value={selectedStaff}
+                    onChange={(e) => setSelectedStaff(e.target.value)}
+                    className="w-full rounded-2xl border border-black/20 bg-white px-4 py-3 text-sm outline-none transition-all duration-300 focus:border-black focus:shadow-soft"
+                  >
+                    {staff.map((member) => <option key={member} value={member}>{member}</option>)}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="mb-2 block text-sm font-medium">Select Time</label>
+                  <select
+                    value={selectedTime}
+                    onChange={(e) => setSelectedTime(e.target.value)}
+                    className="w-full rounded-2xl border border-black/20 bg-white px-4 py-3 text-sm outline-none transition-all duration-300 focus:border-black focus:shadow-soft"
+                  >
+                    {times.map((time) => <option key={time} value={time}>{time}</option>)}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="mb-2 block text-sm font-medium">Name</label>
+                  <input
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="Your full name"
+                    className="w-full rounded-2xl border border-black/20 bg-white px-4 py-3 text-sm outline-none transition-all duration-300 focus:border-black focus:shadow-soft"
+                  />
+                </div>
+
+                <div>
+                  <label className="mb-2 block text-sm font-medium">Phone</label>
+                  <input
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    placeholder="+1 555 123 4567"
+                    className="w-full rounded-2xl border border-black/20 bg-white px-4 py-3 text-sm outline-none transition-all duration-300 focus:border-black focus:shadow-soft"
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={!canBook}
+                  className="w-full rounded-full bg-black px-4 py-3 text-sm font-medium text-white shadow-soft transition-all duration-300 hover:-translate-y-0.5 hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  Confirm Booking
+                </button>
+              </form>
+            </section>
+          </Container>
+        </main>
+      );
+    }
+
+    function App() {
+      const [page, setPage] = useState("landing");
+
+      return (
+        <div className="min-h-screen bg-white text-black">
+          <Navigation page={page} setPage={setPage} />
+          {page === "landing" && <LandingPage setPage={setPage} />}
+          {page === "login" && <GoogleLoginPage setPage={setPage} />}
+          {page === "dashboard" && <OwnerDashboardPage />}
+          {page === "booking" && <ClientBookingPage />}
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+  </script>
+</body>
+</html>
