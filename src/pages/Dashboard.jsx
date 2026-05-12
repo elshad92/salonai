@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabase";
+import { generateInsights } from "../lib/aiAnalyst";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -87,34 +88,15 @@ export default function Dashboard() {
   }, []);
 
   useEffect(() => {
-    if (weekCount === null || monthCount === null) return;
+    if (weekCount === null || monthCount === null || loadingAppointments) return;
 
-    async function loadAI() {
-      setLoadingAI(true);
-      try {
-        const res = await fetch("/.netlify/functions/ai-insights", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            todayCount: appointments.length,
-            weekCount,
-            monthCount,
-          }),
-        });
-        if (res.ok) {
-          const { insights } = await res.json();
-          if (Array.isArray(insights) && insights.length > 0) {
-            setAiMessages(insights);
-          }
-        }
-      } catch {
-        // keep default messages on error
-      }
-      setLoadingAI(false);
-    }
-
-    loadAI();
-  }, [weekCount, monthCount, appointments.length]);
+    const insights = generateInsights({
+      todayAppointments: appointments,
+      weekCount,
+      monthCount,
+    });
+    setAiMessages(insights);
+  }, [weekCount, monthCount, appointments, loadingAppointments]);
 
   const stats = useMemo(
     () => [
@@ -327,9 +309,9 @@ export default function Dashboard() {
               alignSelf: "start",
             }}
           >
-            <h2 style={{ margin: 0, fontSize: 22, fontWeight: 600 }}>AI Messages</h2>
+            <h2 style={{ margin: 0, fontSize: 22, fontWeight: 600 }}>🤖 AI Analyst</h2>
             <p style={{ margin: "8px 0 16px", color: "#666", fontSize: 14 }}>
-              {loadingAI ? "Generating insights…" : "Actionable insights generated for today"}
+              Smart insights based on your real booking data
             </p>
 
             <div style={{ display: "grid", gap: 10 }}>
