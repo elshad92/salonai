@@ -16,3 +16,9 @@ on public.appointments
 for insert
 to anon
 with check (true);
+
+create policy "Allow public reads for appointments"
+on public.appointments
+for select
+to anon
+using (true);

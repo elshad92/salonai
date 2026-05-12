@@ -1,24 +1,78 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { supabase } from "../lib/supabase";
+
+const SERVICE_PRICES = {
+  haircut: 50,
+  color: 150,
+  blowout: 80,
+  keratin: 180,
+};
+
+const SERVICE_LABELS = {
+  haircut: "Haircut",
+  color: "Color & Tone",
+  blowout: "Blowout",
+  keratin: "Keratin Treatment",
+};
+
+const MASTER_LABELS = {
+  emma: "Emma Wilson",
+  olivia: "Olivia Brown",
+  mia: "Mia Johnson",
+};
+
+const STATUS_BY_TIME = (timeStr) => {
+  const [h, m] = timeStr.split(":").map(Number);
+  const now = new Date();
+  const apptMinutes = h * 60 + m;
+  const nowMinutes = now.getHours() * 60 + now.getMinutes();
+  if (nowMinutes > apptMinutes + 60) return "Completed";
+  if (nowMinutes >= apptMinutes - 5) return "In progress";
+  return "Confirmed";
+};
+
+const aiMessages = [
+  "3 clients asked for weekend availability. Consider opening one extra slot on Saturday.",
+  "Your noon hours are near full capacity. Raise premium service prices by 5-7% next week.",
+  "Top add-on today: scalp massage. Bundle it with haircut for higher conversion.",
+];
 
 export default function Dashboard() {
+  const [appointments, setAppointments] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    async function load() {
+      const today = new Date().toISOString().split("T")[0];
+      const { data, error: err } = await supabase
+        .from("appointments")
+        .select("*")
+        .eq("date", today)
+        .order("time", { ascending: true });
+
+      if (err) {
+        setError(err.message);
+      } else {
+        setAppointments(data ?? []);
+      }
+      setLoading(false);
+    }
+    load();
+  }, []);
+
+  const revenue = appointments.reduce(
+    (sum, a) => sum + (SERVICE_PRICES[a.service] ?? 0),
+    0
+  );
+  const avgTicket = appointments.length > 0 ? Math.round(revenue / appointments.length) : 0;
+
   const stats = [
-    { label: "Revenue Today", value: "$2,480", trend: "+12%" },
-    { label: "Bookings", value: "18", trend: "+4" },
-    { label: "New Clients", value: "6", trend: "+2" },
-    { label: "Avg. Ticket", value: "$138", trend: "+8%" },
-  ];
-
-  const appointments = [
-    { time: "09:30", client: "Emma Wilson", service: "Color + Blowout", status: "Confirmed" },
-    { time: "11:00", client: "Sophia Lee", service: "Haircut", status: "In progress" },
-    { time: "13:15", client: "Olivia Brown", service: "Balayage", status: "Confirmed" },
-    { time: "16:00", client: "Mia Johnson", service: "Keratin Treatment", status: "Pending" },
-  ];
-
-  const aiMessages = [
-    "3 clients asked for weekend availability. Consider opening one extra slot on Saturday.",
-    "Your noon hours are near full capacity. Raise premium service prices by 5-7% next week.",
-    "Top add-on today: scalp massage. Bundle it with haircut for higher conversion.",
+    { label: "Revenue Today", value: `$${revenue.toLocaleString()}` },
+    { label: "Bookings", value: String(appointments.length) },
+    { label: "Unique Clients", value: String(new Set(appointments.map((a) => a.phone)).size) },
+    { label: "Avg. Ticket", value: avgTicket > 0 ? `$${avgTicket}` : "—" },
   ];
 
   return (
@@ -42,9 +96,11 @@ export default function Dashboard() {
           }}
         >
           <div>
-            <h1 style={{ margin: 0, fontSize: 34, fontWeight: 600, letterSpacing: "-0.02em" }}>Dashboard</h1>
+            <h1 style={{ margin: 0, fontSize: 34, fontWeight: 600, letterSpacing: "-0.02em" }}>
+              Dashboard
+            </h1>
             <p style={{ margin: "8px 0 0", color: "#555", fontSize: 15 }}>
-              Clean overview of salon performance and AI insights
+              {new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}
             </p>
           </div>
 
@@ -100,21 +156,41 @@ export default function Dashboard() {
               }}
             >
               <p style={{ margin: 0, fontSize: 13, color: "#666" }}>{item.label}</p>
-              <p style={{ margin: "10px 0 6px", fontSize: 30, fontWeight: 600, letterSpacing: "-0.02em" }}>
-                {item.value}
+              <p
+                style={{
+                  margin: "10px 0 6px",
+                  fontSize: 30,
+                  fontWeight: 600,
+                  letterSpacing: "-0.02em",
+                }}
+              >
+                {loading ? (
+                  <span
+                    style={{
+                      display: "inline-block",
+                      width: 80,
+                      height: 32,
+                      background: "#F0F0F0",
+                      borderRadius: 8,
+                      animation: "pulse 1.5s ease-in-out infinite",
+                    }}
+                  />
+                ) : (
+                  item.value
+                )}
               </p>
               <span
                 style={{
                   display: "inline-block",
                   fontSize: 12,
-                  color: "#111",
+                  color: "#888",
                   background: "#F6F2E8",
                   border: "1px solid #E9DFC9",
                   borderRadius: 999,
                   padding: "5px 10px",
                 }}
               >
-                {item.trend}
+                Live
               </span>
             </article>
           ))}
@@ -135,8 +211,17 @@ export default function Dashboard() {
               background: "#FFF",
             }}
           >
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-              <h2 style={{ margin: 0, fontSize: 22, fontWeight: 600 }}>Today&apos;s Appointments</h2>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginBottom: 16,
+              }}
+            >
+              <h2 style={{ margin: 0, fontSize: 22, fontWeight: 600 }}>
+                Today&apos;s Appointments
+              </h2>
               <span
                 style={{
                   background: "#C8A96E",
@@ -151,40 +236,65 @@ export default function Dashboard() {
               </span>
             </div>
 
-            <div style={{ display: "grid", gap: 10 }}>
-              {appointments.map((item) => (
-                <div
-                  key={`${item.time}-${item.client}`}
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "92px 1fr auto",
-                    alignItems: "center",
-                    gap: 14,
-                    padding: "12px 14px",
-                    borderRadius: 14,
-                    border: "1px solid #F0F0F0",
-                    background: "#FFF",
-                  }}
-                >
-                  <span style={{ fontWeight: 600, fontSize: 14 }}>{item.time}</span>
-                  <div>
-                    <p style={{ margin: 0, fontWeight: 500 }}>{item.client}</p>
-                    <p style={{ margin: "4px 0 0", fontSize: 13, color: "#666" }}>{item.service}</p>
-                  </div>
-                  <span
+            {error ? (
+              <p style={{ color: "#C62828", fontSize: 14 }}>
+                Failed to load appointments: {error}
+              </p>
+            ) : loading ? (
+              <div style={{ display: "grid", gap: 10 }}>
+                {[1, 2, 3].map((i) => (
+                  <div
+                    key={i}
                     style={{
-                      fontSize: 12,
-                      padding: "5px 9px",
-                      borderRadius: 999,
-                      border: "1px solid #E9DFC9",
-                      background: "#F6F2E8",
+                      height: 64,
+                      borderRadius: 14,
+                      background: "#F5F5F5",
+                    }}
+                  />
+                ))}
+              </div>
+            ) : appointments.length === 0 ? (
+              <p style={{ color: "#888", fontSize: 14 }}>No appointments today.</p>
+            ) : (
+              <div style={{ display: "grid", gap: 10 }}>
+                {appointments.map((item) => (
+                  <div
+                    key={item.id}
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "92px 1fr auto",
+                      alignItems: "center",
+                      gap: 14,
+                      padding: "12px 14px",
+                      borderRadius: 14,
+                      border: "1px solid #F0F0F0",
+                      background: "#FFF",
                     }}
                   >
-                    {item.status}
-                  </span>
-                </div>
-              ))}
-            </div>
+                    <span style={{ fontWeight: 600, fontSize: 14 }}>{item.time}</span>
+                    <div>
+                      <p style={{ margin: 0, fontWeight: 500 }}>{item.name}</p>
+                      <p style={{ margin: "4px 0 0", fontSize: 13, color: "#666" }}>
+                        {SERVICE_LABELS[item.service] ?? item.service} ·{" "}
+                        {MASTER_LABELS[item.master] ?? item.master}
+                      </p>
+                    </div>
+                    <span
+                      style={{
+                        fontSize: 12,
+                        padding: "5px 9px",
+                        borderRadius: 999,
+                        border: "1px solid #E9DFC9",
+                        background: "#F6F2E8",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {STATUS_BY_TIME(item.time)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
           </article>
 
           <aside
