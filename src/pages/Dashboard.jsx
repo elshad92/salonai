@@ -163,6 +163,20 @@ export default function Dashboard() {
             >
               Booking
             </Link>
+            <Link
+              to="/marketing"
+              style={{
+                textDecoration: "none",
+                padding: "10px 14px",
+                borderRadius: 999,
+                border: "1px solid #EAEAEA",
+                color: "#111",
+                fontSize: 14,
+                fontWeight: 500,
+              }}
+            >
+              📸 Marketing
+            </Link>
             <button
               onClick={handleLogout}
               style={{
