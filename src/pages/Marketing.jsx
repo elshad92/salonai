@@ -1,14 +1,26 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { generatePosts } from "../lib/aiMarketer";
+import { generatePostsAI, generatePosts } from "../lib/aiMarketer";
 
 export default function Marketing() {
   const [posts, setPosts] = useState(() => generatePosts(5));
   const [copied, setCopied] = useState(null);
+  const [generating, setGenerating] = useState(false);
 
-  function regenerate() {
-    setPosts(generatePosts(5));
+  useEffect(() => {
+    generatePostsAI().then(p => { if (p) setPosts(p); });
+  }, []);
+
+  async function regenerate() {
+    setGenerating(true);
     setCopied(null);
+    try {
+      const p = await generatePostsAI();
+      if (p) setPosts(p);
+    } catch {
+      setPosts(generatePosts(5));
+    }
+    setGenerating(false);
   }
 
   function copyPost(id, text, hashtags) {
@@ -17,11 +29,12 @@ export default function Marketing() {
     setTimeout(() => setCopied(null), 2000);
   }
 
-  const typeLabel = { promo: "🎯 Promo", engagement: "💬 Engagement", tip: "💡 Tip" };
+  const typeLabel = { promo: "🎯 Promo", engagement: "💬 Engagement", tip: "💡 Tip", seasonal: "🌸 Seasonal" };
   const typeColor = {
     promo: { bg: "#FFF8ED", border: "#F0DDB5" },
     engagement: { bg: "#F0F7FF", border: "#C5DBEF" },
     tip: { bg: "#F2FFF5", border: "#C5E8CE" },
+    seasonal: { bg: "#FFF0F5", border: "#E8C5D5" },
   };
 
   return (

@@ -1,77 +1,45 @@
-// AI Marketer — generates Instagram post ideas based on salon data
+import { askGemini } from "./gemini";
 
-const postTemplates = [
-  {
-    type: "promo",
-    templates: [
-      "✨ {service} Special This Week! Book now and get 15% off your first visit. Link in bio 👆",
-      "💫 Transform your look with our {service} service. Limited slots available this week!",
-      "🌟 New week, new you! Our {master} has openings for {service}. Don't miss out!",
-    ],
-  },
-  {
-    type: "engagement",
-    templates: [
-      "What's your go-to salon service? 💇‍♀️ Drop a comment below!",
-      "Monday mood: fresh hair, fresh start ✨ Who's booking this week?",
-      "Tag someone who needs a self-care day 💆‍♀️",
-      "Before & after transformations are our favorite thing. Stay tuned! 🔥",
-    ],
-  },
-  {
-    type: "tip",
-    templates: [
-      "💡 Pro tip: {tip}",
-      "Did you know? {tip} Book a consultation to learn more!",
-      "Your hair deserves the best. Here's a tip from our experts: {tip}",
-    ],
-  },
-];
-const tips = [
-  "Deep conditioning once a week keeps your hair healthier between salon visits",
-  "Avoid washing color-treated hair for 48 hours after your appointment",
-  "Use a silk pillowcase to reduce frizz and breakage while you sleep",
-  "Heat protectant is non-negotiable before using any hot tools",
-  "Regular trims every 6-8 weeks prevent split ends from traveling up",
-  "Cold water rinse after conditioning seals the cuticle for extra shine",
-];
+export async function generatePostsAI(salonName = "SalonAI") {
+  const prompt = `You are an expert Instagram marketer for a beauty salon called "${salonName}".
+Generate exactly 5 Instagram posts. Mix these types: 1 promo, 2 engagement, 1 tip, 1 seasonal.
 
-const services = ["Haircut", "Color & Tone", "Blowout", "Keratin Treatment"];
-const masters = ["Emma Wilson", "Olivia Brown", "Mia Johnson"];
+For each post return EXACTLY this format (no extra text):
+TYPE: promo|engagement|tip|seasonal
+TEXT: the caption text with emojis
+TAGS: 5-6 relevant hashtags
+TIME: best posting time (e.g. 9:00 AM)
+---
 
-function pick(arr) {
-  return arr[Math.floor(Math.random() * arr.length)];
-}
+Make posts trendy, use current social media language, include emojis. Keep captions under 150 words.`;
 
-export function generatePosts(count = 5) {
-  const posts = [];
-  const usedTypes = [];
-
-  for (let i = 0; i < count; i++) {
-    const typeIndex = i % postTemplates.length;
-    const category = postTemplates[typeIndex];
-    let template = pick(category.templates);
-
-    template = template
-      .replace("{service}", pick(services))
-      .replace("{master}", pick(masters))
-      .replace("{tip}", pick(tips));
-
-    posts.push({
-      id: i + 1,
-      type: category.type,
-      text: template,
-      hashtags: generateHashtags(category.type),
-      bestTime: pick(["9:00 AM", "12:00 PM", "5:00 PM", "7:00 PM"]),
-    });
+  const result = await askGemini(prompt);
+  if (result) {
+    const posts = [];
+    const blocks = result.split("---").map(b => b.trim()).filter(Boolean);
+    for (let i = 0; i < blocks.length && posts.length < 5; i++) {
+      const b = blocks[i];
+      const type = b.match(/TYPE:\s*(\w+)/i)?.[1]?.toLowerCase() || "engagement";
+      const text = b.match(/TEXT:\s*([\s\S]*?)(?=TAGS:|$)/i)?.[1]?.trim() || "";
+      const tags = b.match(/TAGS:\s*(.*)/i)?.[1]?.trim() || "#SalonLife #HairGoals";
+      const time = b.match(/TIME:\s*(.*)/i)?.[1]?.trim() || "12:00 PM";
+      if (text.length > 10) {
+        posts.push({ id: i+1, type, text, hashtags: tags, bestTime: time });
+      }
+    }
+    if (posts.length >= 3) return posts;
   }
-
-  return posts;
+  return generatePostsFallback();
+}
+function generatePostsFallback() {
+  const templates = [
+    { type:"promo", text:"✨ This week only — 15% off all color services! Book your transformation now. Link in bio 👆", hashtags:"#SalonDeal #HairGoals #ColorSpecial #BookNow #SalonLife", bestTime:"9:00 AM" },
+    { type:"engagement", text:"What's your go-to salon service? 💇‍♀️ Drop it below!", hashtags:"#SalonLife #HairCommunity #SelfCare #GlowUp #BeautyTips", bestTime:"12:00 PM" },
+    { type:"tip", text:"💡 Pro tip: Use a silk pillowcase to reduce frizz and breakage while you sleep. Your hair will thank you!", hashtags:"#HairTips #ProTips #HealthyHair #SalonAdvice #HairCare", bestTime:"5:00 PM" },
+    { type:"engagement", text:"Tag someone who deserves a self-care day 💆‍♀️ They'll love you for it!", hashtags:"#SelfCare #TreatYourself #SalonDay #GlowUp #BeautyTime", bestTime:"7:00 PM" },
+    { type:"seasonal", text:"Summer is coming! ☀️ Protect your color with our UV treatment. Limited appointments available.", hashtags:"#SummerHair #UVProtection #ColorCare #SalonLife #BookNow", bestTime:"10:00 AM" },
+  ];
+  return templates.map((t,i) => ({ ...t, id: i+1 }));
 }
 
-function generateHashtags(type) {
-  const base = ["#SalonLife", "#HairGoals", "#BeautyTips"];
-  if (type === "promo") return [...base, "#SalonDeal", "#BookNow", "#HairSpecial"].join(" ");
-  if (type === "engagement") return [...base, "#HairCommunity", "#SelfCare", "#GlowUp"].join(" ");
-  return [...base, "#HairTips", "#ProTips", "#HealthyHair"].join(" ");
-}
+export { generatePostsFallback as generatePosts };

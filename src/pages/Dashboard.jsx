@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabase";
-import { generateInsights } from "../lib/aiAnalyst";
+import { generateInsightsAI, generateInsights } from "../lib/aiAnalyst";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -90,12 +90,15 @@ export default function Dashboard() {
   useEffect(() => {
     if (weekCount === null || monthCount === null || loadingAppointments) return;
 
-    const insights = generateInsights({
-      todayAppointments: appointments,
-      weekCount,
-      monthCount,
-    });
-    setAiMessages(insights);
+    async function loadInsights() {
+      const data = { todayAppointments: appointments, weekCount, monthCount };
+      try {
+        const ai = await generateInsightsAI(data);
+        if (ai && ai.length) { setAiMessages(ai); return; }
+      } catch {}
+      setAiMessages(generateInsights(data));
+    }
+    loadInsights();
   }, [weekCount, monthCount, appointments, loadingAppointments]);
 
   const stats = useMemo(
