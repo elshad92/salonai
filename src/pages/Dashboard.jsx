@@ -177,6 +177,20 @@ export default function Dashboard() {
             >
               📸 Marketing
             </Link>
+            <Link
+              to="/salon-setup"
+              style={{
+                textDecoration: "none",
+                padding: "10px 14px",
+                borderRadius: 999,
+                border: "1px solid #EAEAEA",
+                color: "#111",
+                fontSize: 14,
+                fontWeight: 500,
+              }}
+            >
+              ⚙️ Salon Setup
+            </Link>
             <button
               onClick={handleLogout}
               style={{
