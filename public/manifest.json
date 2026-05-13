@@ -1,0 +1,13 @@
+{
+  "name": "SalonAI",
+  "short_name": "SalonAI",
+  "description": "AI-powered salon management. Zero commissions.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FFFFFF",
+  "theme_color": "#C8A96E",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
