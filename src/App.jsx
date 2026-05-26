@@ -8,6 +8,7 @@ import Booking from "./pages/Booking";
 import Marketing from "./pages/Marketing";
 import SalonPage from "./pages/SalonPage";
 import SalonSetup from "./pages/SalonSetup";
+import WhatsApp from "./pages/WhatsApp";
 import ChatWidget from "./lib/ChatWidget";
 
 function ProtectedRoute({ children }) {
@@ -36,6 +37,7 @@ function App() {
         <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
         <Route path="/marketing" element={<ProtectedRoute><Marketing /></ProtectedRoute>} />
         <Route path="/salon-setup" element={<ProtectedRoute><SalonSetup /></ProtectedRoute>} />
+        <Route path="/whatsapp" element={<ProtectedRoute><WhatsApp /></ProtectedRoute>} />
         <Route path="/booking" element={<Booking />} />
         <Route path="/s/:slug" element={<SalonPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />

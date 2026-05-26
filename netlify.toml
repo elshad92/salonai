@@ -1,0 +1,24 @@
+[build]
+  publish = "dist"
+  command = "npm run build"
+
+[functions]
+  directory        = "netlify/functions"
+  node_bundler     = "esbuild"
+  included_files   = ["netlify/functions/**"]
+
+# Scheduled reminder job — runs every hour
+[functions."whatsapp-reminders"]
+  schedule = "0 * * * *"
+
+# Route /api/* to Netlify Functions (clean URLs for webhook config)
+[[redirects]]
+  from   = "/api/:func"
+  to     = "/.netlify/functions/:func"
+  status = 200
+
+# SPA fallback — must be last
+[[redirects]]
+  from   = "/*"
+  to     = "/index.html"
+  status = 200
