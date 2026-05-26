@@ -1,7 +1,8 @@
 import { askGemini } from "./gemini";
 
-export async function generatePostsAI(salonName = "SalonAI") {
-  const prompt = `You are an expert Instagram marketer for a beauty salon called "${salonName}".
+export async function generatePostsAI(salonName = "SalonAI", services = "") {
+  const svcHint = services ? ` specializing in ${services}` : "";
+  const prompt = `You are an expert Instagram marketer for a beauty salon called "${salonName}"${svcHint}.
 Generate exactly 5 Instagram posts. Mix these types: 1 promo, 2 engagement, 1 tip, 1 seasonal.
 
 For each post return EXACTLY this format (no extra text):

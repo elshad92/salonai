@@ -21,6 +21,7 @@ export default function Dashboard() {
   const [loyalty, setLoyalty] = useState([]);
   const [copiedLink, setCopiedLink] = useState(false);
   const [salonChecked, setSalonChecked] = useState(false);
+  const [whatsappActive, setWhatsappActive] = useState(null);
 
   useEffect(() => {
     supabase.auth.getUser().then(async ({ data: { user } }) => {
@@ -30,12 +31,12 @@ export default function Dashboard() {
           .from("salons").select("id, slug, name").eq("owner_id", user.id).single();
         if (salonData) {
           setSalon(salonData);
-          const { data: loyaltyData } = await supabase
-            .from("loyalty").select("*")
-            .eq("salon_id", salonData.id)
-            .order("visits", { ascending: false })
-            .limit(5);
-          setLoyalty(loyaltyData || []);
+          const [loyaltyRes, waRes] = await Promise.all([
+            supabase.from("loyalty").select("*").eq("salon_id", salonData.id).order("visits", { ascending: false }).limit(5),
+            supabase.from("salon_integrations").select("enabled").eq("salon_id", salonData.id).eq("provider", "twilio").single(),
+          ]);
+          setLoyalty(loyaltyRes.data || []);
+          setWhatsappActive(waRes.data?.enabled ?? false);
         }
         setSalonChecked(true);
       }
@@ -114,7 +115,8 @@ export default function Dashboard() {
     { label: "Bookings Today", value: loadingAppointments ? "..." : String(appointments.length), trend: "Live" },
     { label: "This Week", value: weekCount === null ? "..." : String(weekCount), trend: "Mon – Today" },
     { label: "This Month", value: monthCount === null ? "..." : String(monthCount), trend: new Date().toLocaleString("en", { month: "long" }) },
-  ], [appointments.length, loadingAppointments, weekCount, monthCount]);
+    { label: "WhatsApp AI", value: whatsappActive === null ? "..." : (whatsappActive ? "Active" : "Off"), trend: whatsappActive ? "Answering clients" : "Set up →", link: "/whatsapp" },
+  ], [appointments.length, loadingAppointments, weekCount, monthCount, whatsappActive]);
 
   const bookingUrl = salon?.slug ? window.location.origin + "/s/" + salon.slug : null;
 
@@ -171,9 +173,12 @@ export default function Dashboard() {
         {/* Stats */}
         <section style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 14, marginBottom: 20 }}>
           {stats.map(item => (
-            <article key={item.label} style={{ border: "1px solid #EFEFEF", borderRadius: 18, padding: 18, background: "#FFF", boxShadow: "0 8px 24px rgba(17,17,17,0.03)" }}>
+            <article key={item.label} style={{ border: "1px solid #EFEFEF", borderRadius: 18, padding: 18, background: "#FFF", boxShadow: "0 8px 24px rgba(17,17,17,0.03)", cursor: item.link ? "pointer" : "default" }}
+              onClick={() => item.link && navigate(item.link)}>
               <p style={{ margin: 0, fontSize: 13, color: "#666" }}>{item.label}</p>
-              <p style={{ margin: "10px 0 6px", fontSize: 30, fontWeight: 600, letterSpacing: "-0.02em" }}>{item.value}</p>
+              <p style={{ margin: "10px 0 6px", fontSize: 30, fontWeight: 600, letterSpacing: "-0.02em",
+                color: item.label === "WhatsApp AI" ? (item.value === "Active" ? "#22C55E" : "#111") : "#111"
+              }}>{item.value}</p>
               <span style={{ display: "inline-block", fontSize: 12, color: "#111", background: "#F6F2E8", border: "1px solid #E9DFC9", borderRadius: 999, padding: "5px 10px" }}>{item.trend}</span>
             </article>
           ))}

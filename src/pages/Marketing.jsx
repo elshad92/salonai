@@ -1,21 +1,33 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import { supabase } from "../lib/supabase";
 import { generatePostsAI, generatePosts } from "../lib/aiMarketer";
 
 export default function Marketing() {
   const [posts, setPosts] = useState(() => generatePosts(5));
   const [copied, setCopied] = useState(null);
   const [generating, setGenerating] = useState(false);
+  const [salonName, setSalonName] = useState("your salon");
 
   useEffect(() => {
-    generatePostsAI().then(p => { if (p) setPosts(p); });
+    async function load() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data } = await supabase.from("salons").select("name,services").eq("owner_id", user.id).single();
+      const name = data?.name || "your salon";
+      const services = data?.services?.map(s => s.name).join(", ") || "";
+      setSalonName(name);
+      const p = await generatePostsAI(name, services);
+      if (p) setPosts(p);
+    }
+    load();
   }, []);
 
   async function regenerate() {
     setGenerating(true);
     setCopied(null);
     try {
-      const p = await generatePostsAI();
+      const p = await generatePostsAI(salonName);
       if (p) setPosts(p);
     } catch {
       setPosts(generatePosts(5));
