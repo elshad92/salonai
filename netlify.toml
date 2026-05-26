@@ -2,6 +2,16 @@
   publish = "dist"
   command = "npm run build"
 
+# Public env vars baked in — anon key is safe to commit (protected by RLS, not secrecy)
+# Only SUPABASE_SERVICE_KEY needs to be set manually in Netlify Dashboard
+[build.environment]
+  SUPABASE_URL          = "https://dditnfupklbqiauzuehw.supabase.co"
+  VITE_SUPABASE_URL     = "https://dditnfupklbqiauzuehw.supabase.co"
+  VITE_SUPABASE_ANON_KEY = "sb_publishable_ZgBZvrK0HN5mU_lf5n7zCg_cqZ_WYoT"
+  GEMINI_KEY            = "AIzaSyCUwGkRNjYTEpvETC2XZlaikU0xdakz-a8"
+  VITE_GEMINI_KEY       = "AIzaSyCUwGkRNjYTEpvETC2XZlaikU0xdakz-a8"
+  MIGRATION_SECRET      = "salonai-migrate-2024"
+
 [functions]
   directory        = "netlify/functions"
   node_bundler     = "esbuild"

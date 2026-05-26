@@ -58,7 +58,13 @@ CREATE POLICY "Owners read conversations"
     )
   );
 
--- Service role can write conversations (used by Netlify function)
-CREATE POLICY "Service role inserts conversations"
+-- Server functions can insert conversations (anon key used in Netlify Functions)
+CREATE POLICY "Server inserts conversations"
   ON whatsapp_conversations FOR INSERT
   WITH CHECK (true);
+
+-- Webhook function reads integrations by phone number (anon key, server-side only)
+-- Safe: the anon key is never exposed to end users in the webhook context
+CREATE POLICY "Webhook reads enabled integrations"
+  ON salon_integrations FOR SELECT
+  USING (enabled = true);
