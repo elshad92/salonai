@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { useIsMobile } from "../lib/useMediaQuery";
 
 const accent = "#C8A96E";
 const dark   = "#111111";
@@ -69,6 +70,7 @@ const PLANS = [
 /* ── component ────────────────────────────────────────────────── */
 export default function Landing() {
   const ff = '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif';
+  const isMobile = useIsMobile();
 
   return (
     <main style={{ minHeight:"100vh", background:"#fff", color:dark, fontFamily:ff }}>
@@ -79,22 +81,22 @@ export default function Landing() {
         background:"rgba(255,255,255,0.92)", backdropFilter:"blur(12px)",
         borderBottom:"1px solid #F0F0F0",
         display:"flex", alignItems:"center", justifyContent:"space-between",
-        padding:"0 32px", height:60,
+        padding: isMobile ? "0 16px" : "0 32px", height:60,
       }}>
         <span style={{ fontSize:20, fontWeight:700, letterSpacing:"-0.03em" }}>SalonAI</span>
         <div style={{ display:"flex", gap:8 }}>
           <A to="/login" style={{
-            padding:"8px 18px", borderRadius:999, border:"1px solid #E8E8E8",
+            padding:"8px 14px", borderRadius:999, border:"1px solid #E8E8E8",
             color:dark, fontSize:14, fontWeight:500,
           }}>Log in</A>
           <A to="/login" style={{
-            padding:"8px 18px", borderRadius:999,
+            padding:"8px 14px", borderRadius:999,
             background:dark, color:"#fff", fontSize:14, fontWeight:600,
-          }}>Get started free →</A>
+          }}>{isMobile ? "Start free" : "Get started free →"}</A>
         </div>
       </nav>
 
-      <div style={{ maxWidth:1100, margin:"0 auto", padding:"0 24px" }}>
+      <div style={{ maxWidth:1100, margin:"0 auto", padding: isMobile ? "0 16px" : "0 24px" }}>
 
         {/* ── HERO ── */}
         <section style={{ textAlign:"center", padding:"80px 0 60px" }}>
@@ -185,7 +187,7 @@ export default function Landing() {
           </div>
           <div style={{ maxWidth:680, margin:"0 auto" }}>
             <div style={{
-              display:"grid", gridTemplateColumns:"1fr 140px 140px",
+              display:"grid", gridTemplateColumns: isMobile ? "1fr 80px 80px" : "1fr 140px 140px",
               gap:8, padding:"10px 16px", marginBottom:4,
             }}>
               <span />
@@ -194,14 +196,14 @@ export default function Landing() {
             </div>
             {COMPARE.map(([feat, us, them], i) => (
               <div key={feat} style={{
-                display:"grid", gridTemplateColumns:"1fr 140px 140px",
+                display:"grid", gridTemplateColumns: isMobile ? "1fr 80px 80px" : "1fr 140px 140px",
                 gap:8, padding:"12px 16px",
                 background: i%2===0 ? "#FAFAFA" : "#fff",
                 borderRadius:10,
               }}>
-                <span style={{ fontSize:14, color:dark }}>{feat}</span>
-                <span style={{ textAlign:"center", fontSize:14, fontWeight:600, color: us.startsWith("✓") ? "#22C55E" : dark }}>{us}</span>
-                <span style={{ textAlign:"center", fontSize:14, color: them.startsWith("✗") ? "#EF4444" : "#888" }}>{them}</span>
+                <span style={{ fontSize: isMobile ? 13 : 14, color:dark }}>{feat}</span>
+                <span style={{ textAlign:"center", fontSize: isMobile ? 13 : 14, fontWeight:600, color: us.startsWith("✓") ? "#22C55E" : dark }}>{us}</span>
+                <span style={{ textAlign:"center", fontSize: isMobile ? 13 : 14, color: them.startsWith("✗") ? "#EF4444" : "#888" }}>{them}</span>
               </div>
             ))}
           </div>
@@ -304,7 +306,7 @@ export default function Landing() {
 
       {/* ── FOOTER ── */}
       <footer style={{
-        borderTop:"1px solid #F0F0F0", padding:"24px 32px",
+        borderTop:"1px solid #F0F0F0", padding: isMobile ? "24px 16px" : "24px 32px",
         display:"flex", justifyContent:"space-between", alignItems:"center",
         flexWrap:"wrap", gap:12, color:"#999", fontSize:13,
       }}>

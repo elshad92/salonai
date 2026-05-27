@@ -1,16 +1,83 @@
-# React + Vite
+# SalonAI
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+AI employees for beauty salons. A Fresha alternative with zero booking commissions and a $19/mo flat fee.
 
-Currently, two official plugins are available:
+Live: **https://salonai-app.netlify.app**
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+---
 
-## React Compiler
+## What it does
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+SalonAI gives salon owners three autonomous AI employees:
 
-## Expanding the ESLint configuration
+- **AI Administrator** — WhatsApp bot (Twilio + Gemini) that books appointments, handles cancellations, and sends 24h/1h reminders automatically
+- **AI Receptionist** — embedded chat widget for your website that qualifies visitors and fills your calendar through natural conversation
+- **AI Marketer** — generates ready-to-post Instagram captions tailored to your salon's services and brand
+- **AI Analyst** — surfaces plain-English insights from your real booking data every time you open the dashboard
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+---
+
+## Stack
+
+| Layer | Tech |
+|---|---|
+| Frontend | Vite + React (inline styles, Apple/Tesla minimalism) |
+| Backend | Supabase (Postgres + Auth + RLS) |
+| AI | Google Gemini 2.0 Flash (via REST API) |
+| WhatsApp | Twilio Programmable Messaging |
+| Hosting | Netlify (with Netlify Functions for webhooks) |
+
+---
+
+## Run locally
+
+```bash
+git clone https://github.com/elshad92/salonai.git
+cd salonai
+npm install
+cp .env.example .env   # fill in your keys
+npm run dev
+```
+
+Open http://localhost:5173
+
+---
+
+## Environment variables
+
+Copy `.env.example` to `.env` and fill in:
+
+| Variable | Description |
+|---|---|
+| `VITE_SUPABASE_URL` | Supabase project URL |
+| `VITE_SUPABASE_ANON_KEY` | Supabase anon (public) key |
+| `VITE_GEMINI_KEY` | Google AI Studio API key |
+| `SUPABASE_URL` | Same as VITE_SUPABASE_URL (used by Netlify Functions) |
+| `SUPABASE_SERVICE_KEY` | Supabase service_role key (for Netlify Functions) |
+| `GEMINI_KEY` | Same as VITE_GEMINI_KEY (used by Netlify Functions) |
+
+See `.env.example` for the full list.
+
+---
+
+## Deploy to Netlify
+
+1. Push to GitHub
+2. Connect repo in Netlify dashboard
+3. Set all env vars under **Site settings → Environment variables**
+4. Deploy — Netlify auto-detects Vite and the `netlify/functions/` folder
+
+**WhatsApp webhook:** after deploy, set `https://<your-site>.netlify.app/api/whatsapp-webhook` as the incoming message URL in your Twilio WhatsApp sandbox.
+
+---
+
+## Pricing
+
+| Plan | Price | Stylists |
+|---|---|---|
+| Solo | $19/mo | 1 |
+| Small | $49/mo | Up to 5 |
+| Pro | $99/mo | Up to 15 |
+| Enterprise | $199/mo | Unlimited |
+
+All plans include the full AI stack. Zero commissions, ever.

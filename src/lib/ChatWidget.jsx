@@ -38,29 +38,41 @@ function clean(text) {
   return text.replace(/###BOOK###.*?###END###/s, "").trim();
 }
 
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth < 520);
+  useEffect(() => {
+    const h = () => setIsMobile(window.innerWidth < 520);
+    window.addEventListener("resize", h);
+    return () => window.removeEventListener("resize", h);
+  }, []);
+  return isMobile;
+}
+
 export default function ChatWidget() {
   const [open, setOpen] = useState(false);
   const [msgs, setMsgs] = useState([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [booked, setBooked] = useState(false);
-  const [salon, setSalon] = useState(null); // null = loading, {} = fallback, {...} = real data
+  const [salon, setSalon] = useState(null);
   const ref = useRef(null);
   const location = useLocation();
+  const isMobile = useIsMobile();
 
   useEffect(() => { ref.current?.scrollIntoView({ behavior: "smooth" }); }, [msgs]);
 
-  // Reset salon data when navigating to a different page
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { setSalon(null); }, [location.pathname]);
 
   useEffect(() => {
     if (!open) return;
+    /* eslint-disable react-hooks/set-state-in-effect */
     if (msgs.length === 0)
       setMsgs([{ r: "bot", t: "Hi! Welcome to our salon 💇 Would you like to book an appointment?" }]);
+    /* eslint-enable react-hooks/set-state-in-effect */
     if (salon !== null) return;
 
     async function loadSalon() {
-      // On /s/:slug — fetch salon by slug
       const slugMatch = location.pathname.match(/^\/s\/([^/]+)/);
       if (slugMatch) {
         const { data } = await supabase.from("salons")
@@ -68,7 +80,6 @@ export default function ChatWidget() {
           .eq("slug", slugMatch[1]).single();
         if (data) { setSalon(data); return; }
       }
-      // Try current logged-in owner's salon
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         const { data } = await supabase.from("salons")
@@ -76,9 +87,10 @@ export default function ChatWidget() {
           .eq("owner_id", user.id).single();
         if (data) { setSalon(data); return; }
       }
-      setSalon({}); // use fallback
+      setSalon({});
     }
     loadSalon();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, location.pathname]);
 
   const system = buildSystem(salon?.name, salon?.services, salon?.masters);
@@ -93,8 +105,7 @@ export default function ChatWidget() {
     setLoading(true);
 
     const history = updated.map(m => m.r === "user" ? "Client: " + m.t : "Receptionist: " + m.t).join("\n");
-    const prompt = history + "\nReceptionist:";
-    const reply = await askGemini(prompt, system);
+    const reply = await askGemini(history + "\nReceptionist:", system);
 
     if (reply) {
       const booking = parseBooking(reply);
@@ -115,32 +126,81 @@ export default function ChatWidget() {
     setLoading(false);
   }
 
+  const widgetW = isMobile ? Math.min(window.innerWidth - 24, 380) : 380;
+  const widgetH = isMobile ? Math.min(window.innerHeight - 90, 580) : 520;
+  const pos = { right: isMobile ? 12 : 24, bottom: isMobile ? 16 : 24 };
+
   if (!open) return (
-    <button onClick={() => setOpen(true)} style={{
-      position:"fixed",bottom:24,right:24,zIndex:9999,
-      width:60,height:60,borderRadius:"50%",
-      background:"#C8A96E",border:"none",cursor:"pointer",
-      boxShadow:"0 4px 20px rgba(200,169,110,0.4)",
-      display:"flex",alignItems:"center",justifyContent:"center",
-      fontSize:26,color:"#FFF",
-    }}>💬</button>
+    <button
+      onClick={() => setOpen(true)}
+      aria-label="Open AI Receptionist chat"
+      style={{
+        position:"fixed", bottom:pos.bottom, right:pos.right, zIndex:9999,
+        width:56, height:56, borderRadius:"50%",
+        background:"#C8A96E", border:"none", cursor:"pointer",
+        boxShadow:"0 4px 20px rgba(200,169,110,0.4)",
+        display:"flex", alignItems:"center", justifyContent:"center",
+        fontSize:24, color:"#FFF",
+      }}
+    >💬</button>
   );
+
   return (
-    <div style={{position:"fixed",bottom:24,right:24,zIndex:9999,width:380,height:520,borderRadius:20,overflow:"hidden",border:"1px solid #E8E8E8",boxShadow:"0 12px 48px rgba(0,0,0,0.12)",display:"flex",flexDirection:"column",background:"#FFF",fontFamily:'-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif'}}>
-      <div style={{padding:"14px 18px",background:"#111",color:"#FFF",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-        <div><div style={{fontWeight:600,fontSize:15}}>🤖 AI Receptionist</div><div style={{fontSize:11,color:"#AAA",marginTop:2}}>Powered by Gemini AI</div></div>
-        <button onClick={()=>setOpen(false)} style={{background:"none",border:"none",color:"#888",fontSize:20,cursor:"pointer"}}>✕</button>
+    <div style={{
+      position:"fixed", bottom:pos.bottom, right:pos.right, zIndex:9999,
+      width:widgetW, height:widgetH,
+      borderRadius:20, overflow:"hidden",
+      border:"1px solid #E8E8E8", boxShadow:"0 12px 48px rgba(0,0,0,0.12)",
+      display:"flex", flexDirection:"column", background:"#FFF",
+      fontFamily:'-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif',
+    }}>
+      {/* Header */}
+      <div style={{padding:"14px 18px", background:"#111", color:"#FFF", display:"flex", justifyContent:"space-between", alignItems:"center", flexShrink:0}}>
+        <div>
+          <div style={{fontWeight:600, fontSize:15}}>🤖 AI Receptionist</div>
+          <div style={{fontSize:11, color:"#AAA", marginTop:2}}>Powered by Gemini AI</div>
+        </div>
+        <button
+          onClick={()=>setOpen(false)}
+          aria-label="Close chat"
+          style={{background:"none", border:"none", color:"#888", fontSize:20, cursor:"pointer", padding:"4px 8px", lineHeight:1}}
+        >✕</button>
       </div>
-      <div style={{flex:1,overflowY:"auto",padding:14,display:"flex",flexDirection:"column",gap:10}}>
+
+      {/* Messages */}
+      <div style={{flex:1, overflowY:"auto", padding:14, display:"flex", flexDirection:"column", gap:10}}>
         {msgs.map((m,i)=>(
-          <div key={i} style={{alignSelf:m.r==="user"?"flex-end":"flex-start",maxWidth:"80%",padding:"10px 14px",borderRadius:m.r==="user"?"16px 16px 4px 16px":"16px 16px 16px 4px",background:m.r==="user"?"#111":"#F5F3EE",color:m.r==="user"?"#FFF":"#111",fontSize:14,lineHeight:1.5,whiteSpace:"pre-wrap"}}>{m.t}</div>
+          <div key={i} style={{
+            alignSelf:m.r==="user"?"flex-end":"flex-start",
+            maxWidth:"82%", padding:"10px 14px",
+            borderRadius:m.r==="user"?"16px 16px 4px 16px":"16px 16px 16px 4px",
+            background:m.r==="user"?"#111":"#F5F3EE",
+            color:m.r==="user"?"#FFF":"#111",
+            fontSize:14, lineHeight:1.5, whiteSpace:"pre-wrap",
+          }}>{m.t}</div>
         ))}
-        {loading && <div style={{alignSelf:"flex-start",padding:"10px 14px",borderRadius:"16px 16px 16px 4px",background:"#F5F3EE",color:"#999",fontSize:14}}>Thinking...</div>}
+        {loading && (
+          <div style={{alignSelf:"flex-start", padding:"10px 14px", borderRadius:"16px 16px 16px 4px", background:"#F5F3EE", color:"#999", fontSize:14}}>
+            Thinking…
+          </div>
+        )}
         <div ref={ref}/>
       </div>
-      <form onSubmit={send} style={{padding:12,borderTop:"1px solid #EAEAEA",display:"flex",gap:8}}>
-        <input value={input} onChange={e=>setInput(e.target.value)} placeholder="Type a message..." style={{flex:1,height:42,borderRadius:12,border:"1px solid #E0E0E0",padding:"0 14px",fontSize:14,outline:"none"}}/>
-        <button type="submit" disabled={loading} style={{height:42,padding:"0 16px",borderRadius:12,background:"#C8A96E",border:"none",color:"#FFF",fontWeight:600,cursor:"pointer",fontSize:14}}>Send</button>
+
+      {/* Input */}
+      <form onSubmit={send} style={{padding:12, borderTop:"1px solid #EAEAEA", display:"flex", gap:8, flexShrink:0}}>
+        <input
+          value={input}
+          onChange={e=>setInput(e.target.value)}
+          placeholder="Type a message..."
+          autoComplete="off"
+          style={{flex:1, height:44, borderRadius:12, border:"1px solid #E0E0E0", padding:"0 14px", fontSize:14, outline:"none", minWidth:0}}
+        />
+        <button
+          type="submit"
+          disabled={loading}
+          style={{height:44, padding:"0 16px", borderRadius:12, background:"#C8A96E", border:"none", color:"#FFF", fontWeight:600, cursor:"pointer", fontSize:14, flexShrink:0, opacity:loading?0.7:1}}
+        >Send</button>
       </form>
     </div>
   );
