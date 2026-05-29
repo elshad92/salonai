@@ -1,6 +1,6 @@
 # SalonAI
 
-AI employees for beauty salons. A Fresha alternative with zero booking commissions and a $19/mo flat fee.
+AI employees for beauty salons. Zero booking commissions and a $19/mo flat fee — no hidden costs, ever.
 
 Live: **https://salonai-app.netlify.app**
 

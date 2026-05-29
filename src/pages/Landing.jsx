@@ -101,7 +101,7 @@ export default function Landing() {
         {/* ── HERO ── */}
         <section style={{ textAlign:"center", padding:"80px 0 60px" }}>
           <div style={{ marginBottom:20 }}>
-            <Tag light>🏆 Zero commissions · AI employees · Fresha alternative</Tag>
+            <Tag light>🏆 Zero commissions · AI employees · No hidden fees</Tag>
           </div>
 
           <h1 style={{
@@ -116,7 +116,7 @@ export default function Landing() {
             margin:"24px auto 0", maxWidth:580, fontSize:18,
             color:"#555", lineHeight:1.6,
           }}>
-            SalonAI replaces Fresha with <strong>zero booking commissions</strong> and gives you
+            SalonAI cuts out commission-based booking platforms — <strong>zero booking commissions</strong> and gives you
             a WhatsApp booking bot, AI marketer and revenue analyst — all in one $19/mo flat fee.
           </p>
 
@@ -179,10 +179,10 @@ export default function Landing() {
         <section style={{ padding:"60px 0" }}>
           <div style={{ textAlign:"center", marginBottom:32 }}>
             <h2 style={{ margin:0, fontSize:"clamp(26px,3.5vw,40px)", fontWeight:700, letterSpacing:"-0.03em" }}>
-              Why switch from Fresha?
+              Why salons choose SalonAI
             </h2>
             <p style={{ margin:"10px auto 0", maxWidth:480, color:"#666" }}>
-              Fresha's "free" plan charges up to 20% commission per booking. SalonAI is $19 flat — forever.
+              Traditional booking platforms charge commissions on every appointment. SalonAI is $19 flat — forever.
             </p>
           </div>
           <div style={{ maxWidth:680, margin:"0 auto" }}>
@@ -192,7 +192,7 @@ export default function Landing() {
             }}>
               <span />
               <span style={{ textAlign:"center", fontSize:13, fontWeight:700, color:accent }}>SalonAI</span>
-              <span style={{ textAlign:"center", fontSize:13, fontWeight:600, color:"#999" }}>Fresha</span>
+              <span style={{ textAlign:"center", fontSize:13, fontWeight:600, color:"#999" }}>Other platforms</span>
             </div>
             {COMPARE.map(([feat, us, them], i) => (
               <div key={feat} style={{
@@ -288,7 +288,7 @@ export default function Landing() {
             Ready to fire your old scheduler?
           </h2>
           <p style={{ margin:"14px auto 0", maxWidth:460, color:"#AAA", fontSize:16 }}>
-            Join salons switching from Fresha. No commissions. AI handles bookings. You keep 100% of revenue.
+            Join salons ditching commission fees. No hidden costs. AI handles bookings. You keep 100% of revenue.
           </p>
           <div style={{ display:"flex", gap:12, justifyContent:"center", flexWrap:"wrap", marginTop:28 }}>
             <A to="/login" style={{

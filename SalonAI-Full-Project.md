@@ -1,7 +1,7 @@
 # SalonAI — Full Project Documentation
 
 ## What is SalonAI
-SaaS platform with AI employees for beauty salons. Commission-free alternative to Fresha. Target market: USA and Europe.
+SaaS platform with AI employees for beauty salons. Commission-free alternative to traditional booking platforms. Target market: USA and Europe.
 
 **Live site:** https://luminous-kitten-bbcfce.netlify.app
 **GitHub:** https://github.com/elshad92/salonai (branch: master)

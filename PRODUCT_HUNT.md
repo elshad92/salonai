@@ -1,13 +1,13 @@
 # SalonAI — Product Hunt Launch Kit
 
 ## Tagline (60 chars max)
-AI employees for salons. Zero Fresha commissions.
+AI employees for salons. Zero booking commissions.
 
 ## Description (260 chars max)
-SalonAI replaces Fresha with zero booking commissions and gives beauty salon owners a WhatsApp AI booking bot, Instagram content generator, and revenue analyst — all for a $19/mo flat fee. Setup takes 2 minutes.
+SalonAI eliminates booking commissions and gives beauty salon owners a WhatsApp AI booking bot, Instagram content generator, and revenue analyst — all for a $19/mo flat fee. Setup takes 2 minutes.
 
 ## First Comment (maker intro, 3-5 sentences)
-Hey Product Hunt! 👋 I built SalonAI after watching my friend lose $800/month in Fresha commissions on a modest salon in New Jersey. The premise is simple: a $19 flat fee beats a 20% commission every single time, and salon owners deserve real automation — not just a calendar. So I built three AI employees that actually work: a WhatsApp bot that books appointments 24/7, an Instagram marketer that generates ready-to-post content, and an analyst that spots trends in your bookings every Monday. You can be live in 2 minutes — sign in with Google, paste one Twilio webhook URL, and your AI team starts answering clients. Would love your feedback — especially from anyone running a salon or barbershop!
+Hey Product Hunt! 👋 I built SalonAI after watching my friend lose $800/month in commission fees on a modest salon in New Jersey. The premise is simple: a $19 flat fee beats a percentage-based commission every single time, and salon owners deserve real automation — not just a calendar. So I built three AI employees that actually work: a WhatsApp bot that books appointments 24/7, an Instagram marketer that generates ready-to-post content, and an analyst that spots trends in your bookings every Monday. You can be live in 2 minutes — sign in with Google, paste one Twilio webhook URL, and your AI team starts answering clients. Would love your feedback — especially from anyone running a salon or barbershop!
 
 ## Topics / Categories
 - Artificial Intelligence
@@ -36,4 +36,4 @@ One click generates 5 ready-to-post captions — promos, engagement posts, tips,
 
 ### 5 — Landing Page / Pricing
 **Zero commissions, forever**
-Side-by-side comparison with Fresha shows the real cost difference. Solo plan starts at $19/mo with full AI stack included — no hidden commission fees, no lock-in.
+Side-by-side comparison shows the real cost difference vs commission-based platforms. Solo plan starts at $19/mo with full AI stack included — no hidden fees, no lock-in.
