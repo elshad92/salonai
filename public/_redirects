@@ -1,1 +1,4 @@
 /*    /index.html   200
+
+# Old-domain redirect — uncomment and update when custom domain is live:
+# https://salonai-app.netlify.app/*  https://your-domain.com/:splat  301!

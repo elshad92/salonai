@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "../lib/supabase";
+import { trackEvent } from "../lib/analytics";
 
 export default function Login() {
   const [loading, setLoading] = useState(false);
@@ -16,6 +17,7 @@ export default function Login() {
   async function handleGoogleLogin() {
     setLoading(true);
     setErrorMessage("");
+    trackEvent("signup");
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: { redirectTo: window.location.origin + "/dashboard" },

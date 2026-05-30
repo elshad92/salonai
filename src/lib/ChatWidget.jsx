@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { supabase } from "./supabase";
 import { askGemini } from "./gemini";
+import { trackEvent } from "./analytics";
 
 const FALLBACK_SERVICES = "Haircut (45 min), Color & Tone (120 min), Blowout (60 min), Keratin Treatment (90 min)";
 const FALLBACK_MASTERS = "Emma Wilson (Senior Stylist), Olivia Brown (Color Specialist), Mia Johnson (Treatment Expert)";
@@ -118,6 +119,7 @@ export default function ChatWidget() {
           service: booking.service, master: booking.master,
           date: booking.date, time: booking.time,
         });
+        trackEvent("appointment_booked", { source: "chatwidget" });
         setBooked(true);
         setMsgs(p => [...p, { r: "bot", t: "✅ Booking saved! See you soon! 🎉" }]);
       }
@@ -133,7 +135,7 @@ export default function ChatWidget() {
 
   if (!open) return (
     <button
-      onClick={() => setOpen(true)}
+      onClick={() => { setOpen(true); trackEvent("chat_widget_opened"); }}
       aria-label="Open AI Receptionist chat"
       style={{
         position:"fixed", bottom:pos.bottom, right:pos.right, zIndex:9999,

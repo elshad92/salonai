@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabase";
+import { trackEvent } from "../lib/analytics";
 
 const DEFAULT_SERVICES = [
   { name: "Haircut", duration: "45 min" },
@@ -70,6 +71,7 @@ export default function SalonSetup() {
       ({ error } = await supabase.from("salons").insert(payload));
     }
     if (!error) {
+      if (!salon) trackEvent("salon_created");
       alert("Saved! Booking link: " + window.location.origin + "/s/" + slug);
       navigate("/dashboard");
     } else {
