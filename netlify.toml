@@ -2,15 +2,12 @@
   publish = "dist"
   command = "npm run build"
 
-# Public env vars baked in — anon key is safe to commit (protected by RLS, not secrecy)
-# Only SUPABASE_SERVICE_KEY needs to be set manually in Netlify Dashboard
+# SUPABASE_SERVICE_KEY and GEMINI_KEY must be set in Netlify Dashboard (not here — they are secrets).
+# VITE_SUPABASE_ANON_KEY is a publishable key protected by RLS — safe to bake into the bundle.
 [build.environment]
   SUPABASE_URL          = "https://dditnfupklbqiauzuehw.supabase.co"
   VITE_SUPABASE_URL     = "https://dditnfupklbqiauzuehw.supabase.co"
   VITE_SUPABASE_ANON_KEY = "sb_publishable_ZgBZvrK0HN5mU_lf5n7zCg_cqZ_WYoT"
-  GEMINI_KEY            = "AIzaSyCUwGkRNjYTEpvETC2XZlaikU0xdakz-a8"
-  VITE_GEMINI_KEY       = "AIzaSyCUwGkRNjYTEpvETC2XZlaikU0xdakz-a8"
-  MIGRATION_SECRET      = "salonai-migrate-2024"
 
 [functions]
   directory        = "netlify/functions"
@@ -32,3 +29,13 @@
   from   = "/*"
   to     = "/index.html"
   status = 200
+
+# ── Security headers ──────────────────────────────────────────────────────────
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options            = "DENY"
+    X-Content-Type-Options     = "nosniff"
+    Referrer-Policy            = "strict-origin-when-cross-origin"
+    Permissions-Policy         = "camera=(), microphone=(), geolocation=()"
+    Content-Security-Policy    = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://accounts.google.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co https://generativelanguage.googleapis.com https://accounts.google.com; frame-src https://accounts.google.com; font-src 'self' data:;"

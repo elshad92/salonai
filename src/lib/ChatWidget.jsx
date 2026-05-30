@@ -76,14 +76,14 @@ export default function ChatWidget() {
       const slugMatch = location.pathname.match(/^\/s\/([^/]+)/);
       if (slugMatch) {
         const { data } = await supabase.from("salons")
-          .select("name, services, masters")
+          .select("id, name, services, masters")
           .eq("slug", slugMatch[1]).single();
         if (data) { setSalon(data); return; }
       }
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         const { data } = await supabase.from("salons")
-          .select("name, services, masters")
+          .select("id, name, services, masters")
           .eq("owner_id", user.id).single();
         if (data) { setSalon(data); return; }
       }
@@ -113,6 +113,7 @@ export default function ChatWidget() {
       setMsgs(p => [...p, { r: "bot", t: display }]);
       if (booking && !booked) {
         await supabase.from("appointments").insert({
+          ...(salon?.id ? { salon_id: salon.id } : {}),
           name: booking.name, phone: booking.phone,
           service: booking.service, master: booking.master,
           date: booking.date, time: booking.time,

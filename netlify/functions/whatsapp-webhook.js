@@ -1,14 +1,51 @@
 // WhatsApp AI Administrator — Webhook Handler
 // Receives messages from Twilio WhatsApp, processes via Gemini, books appointments in Supabase
 import { createClient } from "@supabase/supabase-js";
+import crypto from "crypto";
 
 const GEMINI_URL =
   "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent";
+
+// ─── In-memory rate limiter (resets when function cold-starts) ───────────────
+const rateMap = new Map(); // ip → { count, windowStart }
+const RATE_LIMIT = 30;     // max requests per window
+const RATE_WINDOW = 60_000; // 1 minute
+
+function isRateLimited(ip) {
+  const now = Date.now();
+  const entry = rateMap.get(ip) || { count: 0, windowStart: now };
+  if (now - entry.windowStart > RATE_WINDOW) {
+    rateMap.set(ip, { count: 1, windowStart: now });
+    return false;
+  }
+  entry.count++;
+  rateMap.set(ip, entry);
+  return entry.count > RATE_LIMIT;
+}
+
+// ─── Twilio request signature validation ─────────────────────────────────────
+function validateTwilioSignature(authToken, signature, url, params) {
+  if (!authToken || !signature) return false;
+  const sortedKeys = Object.keys(params).sort();
+  const data = url + sortedKeys.map(k => k + params[k]).join("");
+  const expected = crypto.createHmac("sha1", authToken).update(data).digest("base64");
+  const a = Buffer.from(signature);
+  const b = Buffer.from(expected);
+  // timingSafeEqual requires same length; pad to avoid timing oracle on length diff
+  if (a.length !== b.length) return false;
+  return crypto.timingSafeEqual(a, b);
+}
 
 // ─── Entry point ────────────────────────────────────────────────────────────
 export const handler = async (event) => {
   if (event.httpMethod !== "POST") {
     return { statusCode: 405, body: "Method Not Allowed" };
+  }
+
+  // Rate limit by source IP
+  const ip = event.headers["x-forwarded-for"]?.split(",")[0]?.trim() || "unknown";
+  if (isRateLimited(ip)) {
+    return { statusCode: 429, body: "Too Many Requests" };
   }
 
   // Parse Twilio's URL-encoded body
@@ -41,6 +78,15 @@ export const handler = async (event) => {
     return twiml(
       "This salon is not currently accepting WhatsApp bookings. Please call us directly."
     );
+  }
+
+  // Validate Twilio signature using this salon's auth token
+  const twilioSignature = event.headers["x-twilio-signature"] || "";
+  const webhookUrl = `https://${event.headers.host}/api/whatsapp-webhook`;
+  const bodyParams = Object.fromEntries(params.entries());
+  if (!validateTwilioSignature(integration.auth_token, twilioSignature, webhookUrl, bodyParams)) {
+    console.warn("Invalid Twilio signature from", ip);
+    return { statusCode: 403, body: "Forbidden" };
   }
 
   const salon = integration.salons;

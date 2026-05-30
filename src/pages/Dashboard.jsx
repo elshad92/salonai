@@ -58,6 +58,7 @@ export default function Dashboard() {
   }
 
   useEffect(() => {
+    if (!salon) return; // wait until salon is loaded before querying appointments
     const now = new Date();
     const today = now.toISOString().slice(0, 10);
     const dow = now.getDay();
@@ -72,11 +73,11 @@ export default function Dashboard() {
 
       const [todayRes, weekRes, monthRes] = await Promise.all([
         supabase.from("appointments").select("id, name, service, time, master, date")
-          .eq("date", today).order("time", { ascending: true }),
+          .eq("salon_id", salon.id).eq("date", today).order("time", { ascending: true }),
         supabase.from("appointments").select("*", { count: "exact", head: true })
-          .gte("date", weekStart).lte("date", today),
+          .eq("salon_id", salon.id).gte("date", weekStart).lte("date", today),
         supabase.from("appointments").select("*", { count: "exact", head: true })
-          .gte("date", monthStart).lte("date", today),
+          .eq("salon_id", salon.id).gte("date", monthStart).lte("date", today),
       ]);
 
       if (todayRes.error) {
@@ -96,7 +97,7 @@ export default function Dashboard() {
       setLoadingAppointments(false);
     }
     loadAll();
-  }, []);
+  }, [salon]);
 
   useEffect(() => {
     if (weekCount === null || monthCount === null || loadingAppointments) return;
