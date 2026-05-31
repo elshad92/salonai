@@ -76,10 +76,10 @@ export default function Booking() {
             <h1 style={{ margin: 0, fontSize: isMobile ? 26 : 34, fontWeight: 600, letterSpacing: "-0.02em" }}>Book Appointment</h1>
             <p style={{ margin: "8px 0 0", color: "#555", fontSize: 15 }}>Quick booking without registration</p>
           </div>
-          <Link to="/dashboard" style={{
+          <Link to="/" style={{
             textDecoration: "none", color: "#111", border: "1px solid #EAEAEA",
             borderRadius: 999, padding: "10px 14px", fontSize: 14, fontWeight: 500,
-          }}>← Dashboard</Link>
+          }}>← Home</Link>
         </header>
 
         <section style={{

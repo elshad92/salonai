@@ -3,9 +3,16 @@ import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 import { trackEvent } from "../lib/analytics";
 
+const accent = "#C8A96E";
+
 export default function Login() {
+  const [mode, setMode] = useState("signin"); // "signin" | "signup"
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -15,7 +22,7 @@ export default function Login() {
   }, [navigate]);
 
   async function handleGoogleLogin() {
-    setLoading(true);
+    setGoogleLoading(true);
     setErrorMessage("");
     trackEvent("signup");
     const { error } = await supabase.auth.signInWithOAuth({
@@ -24,63 +31,86 @@ export default function Login() {
     });
     if (error) {
       setErrorMessage(error.message || "Unable to sign in with Google.");
-      setLoading(false);
+      setGoogleLoading(false);
     }
   }
 
-  return (    <main
-      style={{
-        minHeight: "100vh",
-        background: "#FFFFFF",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-        padding: 32,
-      }}
-    >
+  async function handleEmailSubmit(e) {
+    e.preventDefault();
+    if (!email.trim() || !password.trim()) return;
+    setLoading(true);
+    setErrorMessage("");
+    setSuccessMessage("");
+
+    if (mode === "signup") {
+      const { error } = await supabase.auth.signUp({
+        email: email.trim(),
+        password,
+        options: { emailRedirectTo: window.location.origin + "/dashboard" },
+      });
+      if (error) {
+        setErrorMessage(error.message);
+      } else {
+        setSuccessMessage("Check your email to confirm your account.");
+        trackEvent("signup");
+      }
+    } else {
+      const { error } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password,
+      });
+      if (error) {
+        setErrorMessage(error.message);
+      } else {
+        trackEvent("login");
+        navigate("/dashboard", { replace: true });
+      }
+    }
+    setLoading(false);
+  }
+
+  const inputStyle = {
+    width: "100%", height: 48, borderRadius: 12,
+    border: "1px solid #EAEAEA", background: "#FAFAFA",
+    padding: "0 14px", fontSize: 14, color: "#111", boxSizing: "border-box",
+  };
+
+  return (
+    <main style={{
+      minHeight: "100vh", background: "#FFFFFF",
+      display: "flex", alignItems: "center", justifyContent: "center",
+      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+      padding: 32,
+    }}>
       <div style={{ width: "100%", maxWidth: 440, textAlign: "center" }}>
         <Link to="/" style={{ textDecoration: "none", color: "#111" }}>
           <h1 style={{ margin: 0, fontSize: 28, fontWeight: 700, letterSpacing: "-0.02em" }}>
-            <span style={{ color: "#C8A96E" }}>●</span> SalonAI
+            <span style={{ color: accent }}>●</span> SalonAI
           </h1>
         </Link>
 
-        <div
-          style={{
-            marginTop: 32,
-            border: "1px solid #EFEFEF",
-            borderRadius: 24,
-            padding: 36,
-            background: "#FFF",
-            boxShadow: "0 12px 40px rgba(0,0,0,0.06)",
-          }}
-        >
+        <div style={{
+          marginTop: 32, border: "1px solid #EFEFEF", borderRadius: 24,
+          padding: 36, background: "#FFF", boxShadow: "0 12px 40px rgba(0,0,0,0.06)",
+        }}>
           <h2 style={{ margin: 0, fontSize: 26, fontWeight: 600, letterSpacing: "-0.02em" }}>
-            Welcome back
+            {mode === "signup" ? "Create account" : "Welcome back"}
           </h2>
-          <p style={{ margin: "10px 0 28px", color: "#666", fontSize: 15 }}>
-            Sign in to manage your salon
+          <p style={{ margin: "10px 0 24px", color: "#666", fontSize: 15 }}>
+            {mode === "signup" ? "Start your free trial today" : "Sign in to manage your salon"}
           </p>
+
+          {/* Google */}
           <button
             type="button"
             onClick={handleGoogleLogin}
-            disabled={loading}
+            disabled={googleLoading}
             style={{
-              width: "100%",
-              height: 52,
-              borderRadius: 14,
-              border: "1px solid #EAEAEA",
-              background: "#FAFAFA",
-              color: "#111",
-              fontSize: 15,
-              fontWeight: 600,
-              cursor: loading ? "wait" : "pointer",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: 10,
-              transition: "all 0.2s",
+              width: "100%", height: 52, borderRadius: 14,
+              border: "1px solid #EAEAEA", background: "#FAFAFA",
+              color: "#111", fontSize: 15, fontWeight: 600,
+              cursor: googleLoading ? "wait" : "pointer",
+              display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
             }}
           >
             <svg width="20" height="20" viewBox="0 0 24 24">
@@ -89,12 +119,49 @@ export default function Login() {
               <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
               <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
             </svg>
-            {loading ? "Redirecting..." : "Continue with Google"}
+            {googleLoading ? "Redirecting…" : "Continue with Google"}
           </button>
 
+          {/* Divider */}
+          <div style={{ display: "flex", alignItems: "center", gap: 12, margin: "20px 0" }}>
+            <div style={{ flex: 1, height: 1, background: "#EAEAEA" }} />
+            <span style={{ fontSize: 12, color: "#AAA", flexShrink: 0 }}>or continue with email</span>
+            <div style={{ flex: 1, height: 1, background: "#EAEAEA" }} />
+          </div>
+
+          {/* Email form */}
+          <form onSubmit={handleEmailSubmit} style={{ display: "grid", gap: 12, textAlign: "left" }}>
+            <input
+              type="email" value={email} onChange={e => setEmail(e.target.value)}
+              placeholder="email@example.com" required style={inputStyle}
+            />
+            <input
+              type="password" value={password} onChange={e => setPassword(e.target.value)}
+              placeholder={mode === "signup" ? "Create password (8+ chars)" : "Password"} required style={inputStyle}
+            />
+            <button type="submit" disabled={loading} style={{
+              height: 50, borderRadius: 12, background: "#111",
+              border: "none", color: "#FFF", fontSize: 15, fontWeight: 600,
+              cursor: loading ? "wait" : "pointer", opacity: loading ? 0.7 : 1,
+            }}>
+              {loading ? "Please wait…" : mode === "signup" ? "Create Account" : "Sign In"}
+            </button>
+          </form>
+
           {errorMessage && (
-            <p style={{ margin: "16px 0 0", color: "#C62828", fontSize: 14 }}>{errorMessage}</p>
+            <p style={{ margin: "14px 0 0", color: "#C62828", fontSize: 14 }}>{errorMessage}</p>
           )}
+          {successMessage && (
+            <p style={{ margin: "14px 0 0", color: "#065F46", fontSize: 14 }}>{successMessage}</p>
+          )}
+
+          <p style={{ margin: "18px 0 0", fontSize: 13, color: "#888" }}>
+            {mode === "signin" ? (
+              <>No account? <button onClick={() => { setMode("signup"); setErrorMessage(""); setSuccessMessage(""); }} style={{ background: "none", border: "none", color: accent, fontWeight: 600, cursor: "pointer", fontSize: 13, padding: 0 }}>Sign up free</button></>
+            ) : (
+              <>Already have one? <button onClick={() => { setMode("signin"); setErrorMessage(""); setSuccessMessage(""); }} style={{ background: "none", border: "none", color: accent, fontWeight: 600, cursor: "pointer", fontSize: 13, padding: 0 }}>Sign in</button></>
+            )}
+          </p>
         </div>
 
         <p style={{ marginTop: 20, fontSize: 13, color: "#999" }}>

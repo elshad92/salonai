@@ -148,7 +148,7 @@ export default function SalonPage() {
           <button type="submit" disabled={submitting} style={{width:"100%",height:50,borderRadius:14,background:accent,border:"none",color:"#FFF",fontSize:16,fontWeight:600,cursor:"pointer"}}>{submitting ? "Booking..." : "Confirm Booking"}</button>
         </form>
 
-        <p style={{textAlign:"center",marginTop:20,fontSize:12,color:"#BBB"}}>Powered by SalonAI</p>
+        <p style={{textAlign:"center",marginTop:20,fontSize:12,color:"#BBB"}}>Powered by <a href="/" style={{color:"#C8A96E",textDecoration:"none",fontWeight:600}}>SalonAI</a></p>
       </div>
     </div>
   );
