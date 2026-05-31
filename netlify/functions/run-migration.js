@@ -38,6 +38,12 @@ CREATE INDEX IF NOT EXISTS idx_wa_conv_lookup
 ALTER TABLE appointments ADD COLUMN IF NOT EXISTS reminder_24h_sent boolean DEFAULT false;
 ALTER TABLE appointments ADD COLUMN IF NOT EXISTS reminder_1h_sent  boolean DEFAULT false;
 
+-- 5. Working hours for salons
+ALTER TABLE salons ADD COLUMN IF NOT EXISTS working_hours jsonb DEFAULT '{"start":"09:00","end":"18:00","days":["Mon","Tue","Wed","Thu","Fri","Sat"]}';
+
+-- 6. Appointment status
+ALTER TABLE appointments ADD COLUMN IF NOT EXISTS status text DEFAULT 'confirmed';
+
 -- 5. RLS
 ALTER TABLE salon_integrations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE whatsapp_conversations ENABLE ROW LEVEL SECURITY;

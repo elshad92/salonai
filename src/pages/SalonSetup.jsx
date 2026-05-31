@@ -24,6 +24,7 @@ export default function SalonSetup() {
     name: "", slug: "", description: "", phone: "", address: "",
     google_maps_url: "", accent_color: "#C8A96E",
   });
+  const [workingHours, setWorkingHours] = useState({ start: "09:00", end: "18:00" });
   const [services, setServices] = useState(DEFAULT_SERVICES);
   const [masters, setMasters] = useState(DEFAULT_MASTERS);
   const [newService, setNewService] = useState({ name: "", duration: "" });
@@ -49,6 +50,7 @@ export default function SalonSetup() {
         });
         if (data.services?.length) setServices(data.services);
         if (data.masters?.length) setMasters(data.masters);
+        if (data.working_hours) setWorkingHours({ start: data.working_hours.start || "09:00", end: data.working_hours.end || "18:00" });
       }
       setLoading(false);
     }
@@ -66,7 +68,7 @@ export default function SalonSetup() {
     setSavedSlug("");
     const { data: { user } } = await supabase.auth.getUser();
     const slug = form.slug || slugify(form.name);
-    const payload = { ...form, slug, owner_id: user.id, services, masters };
+    const payload = { ...form, slug, owner_id: user.id, services, masters, working_hours: workingHours };
 
     let error;
     if (salon) {
@@ -209,6 +211,22 @@ export default function SalonSetup() {
               <button type="button" onClick={addMaster} style={{ height: 44, padding: "0 16px", borderRadius: 12, background: "#111", border: "none", color: "#FFF", fontWeight: 600, cursor: "pointer", fontSize: 14, marginTop: 22 }}>
                 + Add
               </button>
+            </div>
+          </section>
+
+          {/* Working Hours */}
+          <section style={{ border: "1px solid #EAEAEA", borderRadius: 20, padding: 24, marginBottom: 20 }}>
+            <h2 style={{ margin: "0 0 16px", fontSize: 18, fontWeight: 600 }}>Working Hours</h2>
+            <p style={{ margin: "0 0 16px", fontSize: 13, color: "#888" }}>Used by the AI booking bot to suggest available times.</p>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+              <label>
+                <span style={spn}>Opens at</span>
+                <input type="time" value={workingHours.start} onChange={e => setWorkingHours(h => ({ ...h, start: e.target.value }))} style={inp} />
+              </label>
+              <label>
+                <span style={spn}>Closes at</span>
+                <input type="time" value={workingHours.end} onChange={e => setWorkingHours(h => ({ ...h, end: e.target.value }))} style={inp} />
+              </label>
             </div>
           </section>
 

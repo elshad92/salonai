@@ -22,6 +22,7 @@ export default function Dashboard() {
   const [salon, setSalon] = useState(null);
   const [loyalty, setLoyalty] = useState([]);
   const [copiedLink, setCopiedLink] = useState(false);
+  const [cancellingId, setCancellingId] = useState(null);
   const [salonChecked, setSalonChecked] = useState(false);
   const [whatsappActive, setWhatsappActive] = useState(null);
   const [telegramActive, setTelegramActive] = useState(null);
@@ -51,6 +52,14 @@ export default function Dashboard() {
   async function handleLogout() {
     await supabase.auth.signOut();
     navigate("/");
+  }
+
+  async function cancelAppointment(id) {
+    if (!window.confirm("Cancel this appointment?")) return;
+    setCancellingId(id);
+    await supabase.from("appointments").delete().eq("id", id);
+    setAppointments(prev => prev.filter(a => a.id !== id));
+    setCancellingId(null);
   }
 
   function copyBookingLink() {
@@ -262,6 +271,7 @@ export default function Dashboard() {
                   {item.stylist && !isMobile && (
                     <span style={{ fontSize: 12, padding: "5px 9px", borderRadius: 999, border: "1px solid #E9DFC9", background: "#F6F2E8", whiteSpace: "nowrap" }}>{item.stylist}</span>
                   )}
+                  <button onClick={() => cancelAppointment(item.id)} disabled={cancellingId === item.id} title="Cancel appointment" style={{ background: "none", border: "none", color: "#CCC", cursor: "pointer", fontSize: 16, padding: "4px 6px", lineHeight: 1, flexShrink: 0 }}>✕</button>
                 </div>
               ))}
               {!loadingAppointments && !appointmentsError && appointments.length === 0 && (
