@@ -153,6 +153,7 @@ export default function Dashboard() {
               <nav style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                 <Link to="/booking" style={{ textDecoration: "none", padding: "10px 14px", borderRadius: 999, border: "1px solid #EAEAEA", color: "#111", fontSize: 14, fontWeight: 500 }}>Booking</Link>
                 <Link to="/marketing" style={{ textDecoration: "none", padding: "10px 14px", borderRadius: 999, border: "1px solid #EAEAEA", color: "#111", fontSize: 14, fontWeight: 500 }}>Marketing</Link>
+                <Link to="/analyst" style={{ textDecoration: "none", padding: "10px 14px", borderRadius: 999, border: "1px solid #EAEAEA", color: "#111", fontSize: 14, fontWeight: 500 }}>Analytics</Link>
                 <Link to="/messaging" style={{ textDecoration: "none", padding: "10px 14px", borderRadius: 999, border: "1px solid #C8A96E", color: "#C8A96E", fontSize: 14, fontWeight: 600 }}>✈️ Messaging AI</Link>
                 <Link to="/salon-setup" style={{ textDecoration: "none", padding: "10px 14px", borderRadius: 999, border: "1px solid #EAEAEA", color: "#111", fontSize: 14, fontWeight: 500 }}>Settings</Link>
                 <button onClick={handleLogout} style={{ padding: "10px 14px", borderRadius: 999, background: "#C8A96E", color: "#111", fontSize: 14, fontWeight: 600, border: "none", cursor: "pointer" }}>Logout</button>
@@ -165,6 +166,7 @@ export default function Dashboard() {
               {[
                 { to: "/booking", label: "Booking" },
                 { to: "/marketing", label: "Marketing" },
+                { to: "/analyst", label: "Analytics" },
                 { to: "/messaging", label: "✈️ Messaging AI" },
                 { to: "/salon-setup", label: "Settings" },
               ].map(({ to, label }) => (

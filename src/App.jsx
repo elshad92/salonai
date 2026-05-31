@@ -9,6 +9,7 @@ const Dashboard = lazy(() => import("./pages/Dashboard"));
 const Marketing = lazy(() => import("./pages/Marketing"));
 const SalonSetup = lazy(() => import("./pages/SalonSetup"));
 const WhatsApp = lazy(() => import("./pages/WhatsApp"));
+const Analyst = lazy(() => import("./pages/Analyst"));
 const Messaging = lazy(() => import("./pages/Messaging"));
 const Booking = lazy(() => import("./pages/Booking"));
 const SalonPage = lazy(() => import("./pages/SalonPage"));
@@ -60,6 +61,7 @@ export default function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route path="/marketing" element={<ProtectedRoute><Marketing /></ProtectedRoute>} />
+          <Route path="/analyst" element={<ProtectedRoute><Analyst /></ProtectedRoute>} />
           <Route path="/salon-setup" element={<ProtectedRoute><SalonSetup /></ProtectedRoute>} />
           <Route path="/messaging" element={<ProtectedRoute><Messaging /></ProtectedRoute>} />
           <Route path="/whatsapp" element={<ProtectedRoute><WhatsApp /></ProtectedRoute>} />
