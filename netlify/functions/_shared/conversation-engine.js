@@ -82,7 +82,10 @@ END_ACTION\`\`\``;
 }
 
 export async function callGemini(apiKey, systemPrompt, userMessage) {
-  if (!apiKey) return null;
+  if (!apiKey) {
+    console.error("Gemini error: GEMINI_KEY is not set");
+    return null;
+  }
   try {
     const res = await fetch(`${GEMINI_URL}?key=${apiKey}`, {
       method: "POST",
@@ -95,7 +98,11 @@ export async function callGemini(apiKey, systemPrompt, userMessage) {
         ],
       }),
     });
-    if (!res.ok) return null;
+    if (!res.ok) {
+      const errBody = await res.text();
+      console.error(`Gemini error: HTTP ${res.status}`, errBody);
+      return null;
+    }
     const data = await res.json();
     return data?.candidates?.[0]?.content?.parts?.[0]?.text || null;
   } catch (e) {

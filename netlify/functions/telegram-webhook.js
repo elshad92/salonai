@@ -1,14 +1,14 @@
 // Telegram AI Administrator — Webhook Handler
-// Receives updates from Telegram Bot API, processes via Gemini, books appointments in Supabase
+// Receives updates from Telegram Bot API, processes via AI (DeepSeek/Gemini), books appointments in Supabase
 import {
   createSupabase,
   loadConversationHistory,
   buildSystemPrompt,
-  callGemini,
   parseAction,
   bookAppointment,
   persistConversation,
 } from "./_shared/conversation-engine.js";
+import { callAI } from "./_shared/ai.js";
 
 // ─── In-memory rate limiter ───────────────────────────────────────────────────
 const rateMap = new Map();
@@ -98,15 +98,13 @@ export const handler = async (event) => {
 
   const salon     = integration.salons;
   const botToken  = integration.telegram_bot_token;
-  const geminiKey = process.env.GEMINI_KEY || process.env.VITE_GEMINI_KEY;
-
   const historyText  = await loadConversationHistory(supabase, salon.id, clientId);
   const services     = Array.isArray(salon.services)     ? salon.services     : [];
   const masters      = Array.isArray(salon.masters)      ? salon.masters      : [];
   const workingHours = salon.working_hours || { start: "09:00", end: "18:00" };
 
   const systemPrompt = buildSystemPrompt(salon, services, masters, workingHours, historyText, "telegram");
-  const aiResponse   = await callGemini(geminiKey, systemPrompt, msgBody);
+  const aiResponse   = await callAI(systemPrompt, msgBody);
 
   if (!aiResponse) {
     await sendTelegramMessage(

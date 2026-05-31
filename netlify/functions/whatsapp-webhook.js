@@ -1,15 +1,15 @@
 // WhatsApp AI Administrator — Webhook Handler (Twilio transport)
-// Receives messages from Twilio WhatsApp, processes via Gemini, books appointments in Supabase
+// Receives messages from Twilio WhatsApp, processes via AI (DeepSeek/Gemini), books appointments in Supabase
 import crypto from "crypto";
 import {
   createSupabase,
   loadConversationHistory,
   buildSystemPrompt,
-  callGemini,
   parseAction,
   bookAppointment,
   persistConversation,
 } from "./_shared/conversation-engine.js";
+import { callAI } from "./_shared/ai.js";
 
 // ─── In-memory rate limiter ───────────────────────────────────────────────────
 const rateMap = new Map();
@@ -86,8 +86,7 @@ export const handler = async (event) => {
     return { statusCode: 403, body: "Forbidden" };
   }
 
-  const salon     = integration.salons;
-  const geminiKey = process.env.GEMINI_KEY || process.env.VITE_GEMINI_KEY;
+  const salon = integration.salons;
 
   const historyText  = await loadConversationHistory(supabase, salon.id, fromRaw);
   const services     = Array.isArray(salon.services)     ? salon.services     : [];
@@ -95,7 +94,7 @@ export const handler = async (event) => {
   const workingHours = salon.working_hours || { start: "09:00", end: "18:00" };
 
   const systemPrompt = buildSystemPrompt(salon, services, masters, workingHours, historyText, "WhatsApp");
-  const aiResponse   = await callGemini(geminiKey, systemPrompt, msgBody);
+  const aiResponse   = await callAI(systemPrompt, msgBody);
 
   if (!aiResponse) {
     return twiml(

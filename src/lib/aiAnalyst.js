@@ -1,7 +1,7 @@
-import { askGemini } from "./gemini";
+import { askAI } from "./ai";
 
 // AI Analyst — generates insights from real appointment data
-// Uses Gemini when available, falls back to templates
+// Uses AI provider (DeepSeek by default) when available, falls back to templates
 
 export async function generateInsightsAI({ todayAppointments, weekCount, monthCount }) {
   const today = new Date();
@@ -16,7 +16,7 @@ Data:
 
 Format: Return exactly 4 insights, one per line. No numbering, no bullets. Just the insight text.`;
 
-  const result = await askGemini(prompt);
+  const result = await askAI(prompt, "", 0.3);
   if (result) {
     const lines = result.split("\n").map(l => l.trim()).filter(l => l.length > 10);
     if (lines.length >= 3) return lines.slice(0, 4);

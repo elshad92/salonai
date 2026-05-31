@@ -1,4 +1,4 @@
-import { askGemini } from "./gemini";
+import { askAI } from "./ai";
 
 export async function generatePostsAI(salonName = "SalonAI", services = "") {
   const svcHint = services ? ` specializing in ${services}` : "";
@@ -14,7 +14,7 @@ TIME: best posting time (e.g. 9:00 AM)
 
 Make posts trendy, use current social media language, include emojis. Keep captions under 150 words.`;
 
-  const result = await askGemini(prompt);
+  const result = await askAI(prompt, "", 0.7);
   if (result) {
     const posts = [];
     const blocks = result.split("---").map(b => b.trim()).filter(Boolean);

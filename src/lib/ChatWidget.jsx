@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { supabase } from "./supabase";
-import { askGemini } from "./gemini";
+import { askAI } from "./ai";
 import { trackEvent } from "./analytics";
 
 const FALLBACK_SERVICES = "Haircut (45 min), Color & Tone (120 min), Blowout (60 min), Keratin Treatment (90 min)";
@@ -106,7 +106,7 @@ export default function ChatWidget() {
     setLoading(true);
 
     const history = updated.map(m => m.r === "user" ? "Client: " + m.t : "Receptionist: " + m.t).join("\n");
-    const reply = await askGemini(history + "\nReceptionist:", system);
+    const reply = await askAI(history + "\nReceptionist:", system, 0.3);
 
     if (reply) {
       const booking = parseBooking(reply);
