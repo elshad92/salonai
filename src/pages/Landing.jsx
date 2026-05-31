@@ -27,15 +27,15 @@ const AGENTS = [
   },
   {
     icon:"📱", title:"AI Marketer",
-    sub:"Instagram & Reels",
-    desc:"Generates content ideas, captions and hashtag sets tailored to your salon. Posts on schedule without lifting a finger.",
-    badge:"Coming soon",
+    sub:"Instagram Content",
+    desc:"Generates ready-to-post captions, hashtags and visual ideas tailored to your salon. Choose your tone — Professional, Fun or Trendy.",
+    badge:"Live now",
   },
   {
     icon:"📊", title:"AI Analyst",
     sub:"Revenue Intelligence",
-    desc:"Spots slow days, top clients and under-used stylists. Gives a plain-English briefing every Monday morning.",
-    badge:"Coming soon",
+    desc:"Spots slow days, top clients and under-used stylists. Real booking data visualised in clear charts with plain-English AI insights.",
+    badge:"Live now",
   },
   {
     icon:"🌐", title:"AI Receptionist",
@@ -95,6 +95,27 @@ export default function Landing() {
           }}>{isMobile ? "Start free" : "Get started free →"}</A>
         </div>
       </nav>
+
+      {/* ── PRODUCT HUNT BANNER ── */}
+      <div style={{
+        background:"linear-gradient(90deg,#FF6154,#FF8A6A)",
+        color:"#fff", textAlign:"center",
+        padding: isMobile ? "10px 16px" : "11px 24px",
+        fontSize: isMobile ? 13 : 14, fontWeight:500,
+        display:"flex", alignItems:"center", justifyContent:"center", gap:8, flexWrap:"wrap",
+      }}>
+        <span>🚀 We&apos;re launching on Product Hunt!</span>
+        <a
+          href="https://www.producthunt.com"
+          target="_blank" rel="noopener noreferrer"
+          style={{
+            background:"#fff", color:"#FF6154",
+            padding:"4px 12px", borderRadius:999,
+            fontSize:12, fontWeight:700, textDecoration:"none",
+            whiteSpace:"nowrap",
+          }}
+        >Support us ↗</a>
+      </div>
 
       <div style={{ maxWidth:1100, margin:"0 auto", padding: isMobile ? "0 16px" : "0 24px" }}>
 
@@ -273,6 +294,36 @@ export default function Landing() {
                   color: p.hot ? dark : "#fff",
                   fontSize:14, fontWeight:600,
                 }}>Get started</A>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        {/* ── TESTIMONIALS ── */}
+        <section style={{ padding:"60px 0" }}>
+          <div style={{ textAlign:"center", marginBottom:40 }}>
+            <p style={{ margin:0, fontSize:12, textTransform:"uppercase", letterSpacing:"0.15em", color:"#999" }}>Early adopters</p>
+            <h2 style={{ margin:"10px 0 0", fontSize:"clamp(26px,3.5vw,40px)", fontWeight:700, letterSpacing:"-0.03em" }}>
+              Salons already saving time
+            </h2>
+          </div>
+          <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(260px,1fr))", gap:16 }}>
+            {[
+              { name:"Jessica M.", role:"Owner · Glow Studio, Austin TX", text:"I used to spend 2 hours a day answering booking messages. The Telegram bot handles everything now. My clients love how fast it responds." },
+              { name:"Maria S.", role:"Owner · Lux Hair, Miami FL", text:"Finally a platform that doesn't eat into my margins. Zero commissions on $8k of monthly bookings is a no-brainer. Setup took 5 minutes." },
+              { name:"Priya K.", role:"Stylist · The Curl Bar, NYC", text:"The AI Marketer generates my Instagram posts in seconds. I just pick the best ones, tweak the photo idea and post. Huge time saver." },
+            ].map(t => (
+              <article key={t.name} style={{
+                border:"1px solid #EFEFEF", borderRadius:20, padding:24, background:"#fff",
+              }}>
+                <p style={{ margin:"0 0 16px", fontSize:15, color:"#333", lineHeight:1.6 }}>&ldquo;{t.text}&rdquo;</p>
+                <div>
+                  <p style={{ margin:0, fontSize:14, fontWeight:600 }}>{t.name}</p>
+                  <p style={{ margin:"2px 0 0", fontSize:12, color:"#999" }}>{t.role}</p>
+                </div>
+                <div style={{ marginTop:12, display:"flex", gap:2 }}>
+                  {Array(5).fill(0).map((_, i) => <span key={i} style={{ color:accent, fontSize:14 }}>★</span>)}
+                </div>
               </article>
             ))}
           </div>
