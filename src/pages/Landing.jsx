@@ -20,9 +20,9 @@ const Tag = ({ children, light }) => (
 /* ── data ─────────────────────────────────────────────────────── */
 const AGENTS = [
   {
-    icon:"💬", title:"AI Administrator",
-    sub:"WhatsApp Booking Bot",
-    desc:"Answers clients 24/7 in their language. Books appointments, handles cancellations, sends reminders. Saves 3+ hours daily.",
+    icon:"✈️", title:"AI Administrator",
+    sub:"Telegram Booking Bot",
+    desc:"Answers clients 24/7 in their language via Telegram. Books appointments, handles cancellations, sends reminders. Saves 3+ hours daily.",
     badge:"Live now",
   },
   {
@@ -49,19 +49,19 @@ const COMPARE = [
   ["Booking commissions",  "0%",    "2 – 20%"],
   ["Monthly flat fee",     "From $19","$30 – $100+"],
   ["AI employees",         "✓ included","✗ none"],
-  ["WhatsApp bot",         "✓ built-in","✗ extra"],
+  ["AI messaging bot",     "✓ built-in","✗ extra"],
   ["Your client data",     "✓ yours","✗ platform owns"],
   ["No lock-in",           "✓ export anytime","✗ locked in"],
 ];
 
 const STEPS = [
   { n:"01", t:"Connect in 2 min", d:"Sign in with Google. Set up your salon profile — services, stylists, working hours." },
-  { n:"02", t:"Activate AI agents", d:"Enable WhatsApp bot, website chat widget. Paste one webhook URL in Twilio — done." },
+  { n:"02", t:"Activate AI agents", d:"Enable Telegram bot, website chat widget. Create a bot in @BotFather, paste your token — done in 2 minutes." },
   { n:"03", t:"Watch it run", d:"AI books appointments, sends reminders, answers questions. You focus on clients." },
 ];
 
 const PLANS = [
-  { name:"Solo",       price:19,  desc:"One stylist, full AI stack.", features:["1 stylist","AI chatbot","WhatsApp bot","Reminders"] },
+  { name:"Solo",       price:19,  desc:"One stylist, full AI stack.", features:["1 stylist","AI chatbot","Telegram bot","Reminders"] },
   { name:"Small",      price:49,  desc:"Growing team, one location.", features:["Up to 5 stylists","All Solo features","Analytics","Priority support"] },
   { name:"Pro",        price:99,  desc:"Established salon, full power.", features:["Up to 15 stylists","All Small features","AI Marketer","Custom domain"], hot:true },
   { name:"Enterprise", price:199, desc:"Multi-location, custom setup.", features:["Unlimited stylists","All Pro features","Dedicated onboarding","SLA"] },
@@ -117,7 +117,7 @@ export default function Landing() {
             color:"#555", lineHeight:1.6,
           }}>
             SalonAI cuts out commission-based booking platforms — <strong>zero booking commissions</strong> and gives you
-            a WhatsApp booking bot, AI marketer and revenue analyst — all in one $19/mo flat fee.
+            a Telegram booking bot, AI marketer and revenue analyst — all in one $19/mo flat fee.
           </p>
 
           <div style={{ display:"flex", gap:12, justifyContent:"center", flexWrap:"wrap", marginTop:32 }}>

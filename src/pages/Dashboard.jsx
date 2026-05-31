@@ -24,6 +24,7 @@ export default function Dashboard() {
   const [copiedLink, setCopiedLink] = useState(false);
   const [salonChecked, setSalonChecked] = useState(false);
   const [whatsappActive, setWhatsappActive] = useState(null);
+  const [telegramActive, setTelegramActive] = useState(null);
 
   useEffect(() => {
     supabase.auth.getUser().then(async ({ data: { user } }) => {
@@ -33,12 +34,14 @@ export default function Dashboard() {
           .from("salons").select("id, slug, name").eq("owner_id", user.id).single();
         if (salonData) {
           setSalon(salonData);
-          const [loyaltyRes, waRes] = await Promise.all([
+          const [loyaltyRes, waRes, tgRes] = await Promise.all([
             supabase.from("loyalty").select("*").eq("salon_id", salonData.id).order("visits", { ascending: false }).limit(5),
-            supabase.from("salon_integrations").select("enabled").eq("salon_id", salonData.id).eq("provider", "twilio").single(),
+            supabase.from("salon_integrations").select("enabled").eq("salon_id", salonData.id).eq("provider", "twilio").maybeSingle(),
+            supabase.from("salon_integrations").select("enabled, telegram_bot_token").eq("salon_id", salonData.id).eq("provider", "telegram").maybeSingle(),
           ]);
           setLoyalty(loyaltyRes.data || []);
           setWhatsappActive(waRes.data?.enabled ?? false);
+          setTelegramActive(tgRes.data?.enabled && !!tgRes.data?.telegram_bot_token);
         }
         setSalonChecked(true);
       }
@@ -118,8 +121,9 @@ export default function Dashboard() {
     { label: "Bookings Today", value: loadingAppointments ? "…" : String(appointments.length), trend: "Live" },
     { label: "This Week", value: weekCount === null ? "…" : String(weekCount), trend: "Mon – Today" },
     { label: "This Month", value: monthCount === null ? "…" : String(monthCount), trend: new Date().toLocaleString("en", { month: "long" }) },
-    { label: "WhatsApp AI", value: whatsappActive === null ? "…" : (whatsappActive ? "Active" : "Off"), trend: whatsappActive ? "Answering clients" : "Set up →", link: "/whatsapp" },
-  ], [appointments.length, loadingAppointments, weekCount, monthCount, whatsappActive]);
+    { label: "Telegram AI",  value: telegramActive === null ? "…" : (telegramActive ? "Active" : "Off"),  trend: telegramActive ? "Answering clients" : "Set up →", link: "/messaging" },
+    { label: "WhatsApp AI", value: whatsappActive === null ? "…" : (whatsappActive ? "Active" : "Off"), trend: whatsappActive ? "Active" : "via Twilio", link: "/messaging" },
+  ], [appointments.length, loadingAppointments, weekCount, monthCount, whatsappActive, telegramActive]);
 
   const bookingUrl = salon?.slug ? window.location.origin + "/s/" + salon.slug : null;
   const pad = isMobile ? 16 : 32;
@@ -149,7 +153,7 @@ export default function Dashboard() {
               <nav style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                 <Link to="/booking" style={{ textDecoration: "none", padding: "10px 14px", borderRadius: 999, border: "1px solid #EAEAEA", color: "#111", fontSize: 14, fontWeight: 500 }}>Booking</Link>
                 <Link to="/marketing" style={{ textDecoration: "none", padding: "10px 14px", borderRadius: 999, border: "1px solid #EAEAEA", color: "#111", fontSize: 14, fontWeight: 500 }}>Marketing</Link>
-                <Link to="/whatsapp" style={{ textDecoration: "none", padding: "10px 14px", borderRadius: 999, border: "1px solid #C8A96E", color: "#C8A96E", fontSize: 14, fontWeight: 600 }}>💬 WhatsApp AI</Link>
+                <Link to="/messaging" style={{ textDecoration: "none", padding: "10px 14px", borderRadius: 999, border: "1px solid #C8A96E", color: "#C8A96E", fontSize: 14, fontWeight: 600 }}>✈️ Messaging AI</Link>
                 <Link to="/salon-setup" style={{ textDecoration: "none", padding: "10px 14px", borderRadius: 999, border: "1px solid #EAEAEA", color: "#111", fontSize: 14, fontWeight: 500 }}>Settings</Link>
                 <button onClick={handleLogout} style={{ padding: "10px 14px", borderRadius: 999, background: "#C8A96E", color: "#111", fontSize: 14, fontWeight: 600, border: "none", cursor: "pointer" }}>Logout</button>
               </nav>
@@ -161,7 +165,7 @@ export default function Dashboard() {
               {[
                 { to: "/booking", label: "Booking" },
                 { to: "/marketing", label: "Marketing" },
-                { to: "/whatsapp", label: "💬 WhatsApp" },
+                { to: "/messaging", label: "✈️ Messaging AI" },
                 { to: "/salon-setup", label: "Settings" },
               ].map(({ to, label }) => (
                 <Link key={to} to={to} style={{ textDecoration: "none", padding: "8px 14px", borderRadius: 999, border: "1px solid #EAEAEA", color: "#111", fontSize: 13, fontWeight: 500, whiteSpace: "nowrap", flexShrink: 0 }}>{label}</Link>
@@ -204,7 +208,7 @@ export default function Dashboard() {
               onClick={() => item.link && navigate(item.link)}>
               <p style={{ margin: 0, fontSize: 12, color: "#666" }}>{item.label}</p>
               <p style={{ margin: "8px 0 6px", fontSize: isMobile ? 24 : 30, fontWeight: 600, letterSpacing: "-0.02em",
-                color: item.label === "WhatsApp AI" ? (item.value === "Active" ? "#22C55E" : "#111") : "#111"
+                color: (item.label === "WhatsApp AI" || item.label === "Telegram AI") ? (item.value === "Active" ? "#22C55E" : "#111") : "#111"
               }}>{item.value}</p>
               <span style={{ display: "inline-block", fontSize: 11, color: "#111", background: "#F6F2E8", border: "1px solid #E9DFC9", borderRadius: 999, padding: "4px 8px" }}>{item.trend}</span>
             </article>
