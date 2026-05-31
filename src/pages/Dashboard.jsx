@@ -23,6 +23,8 @@ export default function Dashboard() {
   const [loyalty, setLoyalty] = useState([]);
   const [copiedLink, setCopiedLink] = useState(false);
   const [cancellingId, setCancellingId] = useState(null);
+  const [apptTab, setApptTab] = useState("today"); // "today" | "upcoming"
+  const [upcomingAppts, setUpcomingAppts] = useState([]);
   const [salonChecked, setSalonChecked] = useState(false);
   const [whatsappActive, setWhatsappActive] = useState(null);
   const [telegramActive, setTelegramActive] = useState(null);
@@ -83,13 +85,19 @@ export default function Dashboard() {
       setLoadingAppointments(true);
       setAppointmentsError("");
 
-      const [todayRes, weekRes, monthRes] = await Promise.all([
+      const next7 = new Date(now);
+      next7.setDate(now.getDate() + 7);
+      const next7Str = next7.toISOString().slice(0, 10);
+
+      const [todayRes, weekRes, monthRes, upcomingRes] = await Promise.all([
         supabase.from("appointments").select("id, name, service, time, master, date")
           .eq("salon_id", salon.id).eq("date", today).order("time", { ascending: true }),
         supabase.from("appointments").select("*", { count: "exact", head: true })
           .eq("salon_id", salon.id).gte("date", weekStart).lte("date", today),
         supabase.from("appointments").select("*", { count: "exact", head: true })
           .eq("salon_id", salon.id).gte("date", monthStart).lte("date", today),
+        supabase.from("appointments").select("id, name, service, time, master, date")
+          .eq("salon_id", salon.id).gt("date", today).lte("date", next7Str).order("date").order("time"),
       ]);
 
       if (todayRes.error) {
@@ -106,6 +114,14 @@ export default function Dashboard() {
       }
       setWeekCount(weekRes.count ?? 0);
       setMonthCount(monthRes.count ?? 0);
+      setUpcomingAppts((upcomingRes.data ?? []).map(item => ({
+        id: item.id,
+        client: item.name || "Unknown client",
+        service: item.service || "Unknown service",
+        time: item.time || "--:--",
+        stylist: item.master || "",
+        date: item.date,
+      })));
       setLoadingAppointments(false);
     }
     loadAll();
@@ -254,16 +270,26 @@ export default function Dashboard() {
         <section style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "minmax(0, 2fr) minmax(300px, 1fr)", gap: 14, marginBottom: 14 }}>
           {/* Today's appointments */}
           <article style={{ border: "1px solid #EFEFEF", borderRadius: 20, padding: isMobile ? 16 : 20, background: "#FFF" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-              <h2 style={{ margin: 0, fontSize: isMobile ? 18 : 22, fontWeight: 600 }}>Today&apos;s Appointments</h2>
-              <span style={{ background: "#C8A96E", color: "#111", borderRadius: 999, fontSize: 12, padding: "6px 10px", fontWeight: 600 }}>
-                {appointments.length} total
-              </span>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16, flexWrap: "wrap", gap: 10 }}>
+              <div style={{ display: "flex", gap: 6 }}>
+                {[
+                  { id: "today",    label: `Today (${appointments.length})` },
+                  { id: "upcoming", label: `Upcoming (${upcomingAppts.length})` },
+                ].map(t => (
+                  <button key={t.id} onClick={() => setApptTab(t.id)} style={{
+                    padding: "6px 14px", borderRadius: 999, border: "1px solid",
+                    borderColor: apptTab === t.id ? "#111" : "#EAEAEA",
+                    background: apptTab === t.id ? "#111" : "#FFF",
+                    color: apptTab === t.id ? "#FFF" : "#555",
+                    fontSize: 13, fontWeight: 600, cursor: "pointer",
+                  }}>{t.label}</button>
+                ))}
+              </div>
             </div>
             <div style={{ display: "grid", gap: 10 }}>
-              {appointments.map(item => (
-                <div key={item.id} style={{ display: "grid", gridTemplateColumns: isMobile ? "72px 1fr" : "92px 1fr auto", alignItems: "center", gap: isMobile ? 10 : 14, padding: "12px 14px", borderRadius: 14, border: "1px solid #F0F0F0" }}>
-                  <span style={{ fontWeight: 600, fontSize: 14 }}>{item.time}</span>
+              {(apptTab === "today" ? appointments : upcomingAppts).map(item => (
+                <div key={item.id} style={{ display: "grid", gridTemplateColumns: isMobile ? "72px 1fr auto" : "92px 1fr auto auto", alignItems: "center", gap: isMobile ? 10 : 14, padding: "12px 14px", borderRadius: 14, border: "1px solid #F0F0F0" }}>
+                  <span style={{ fontWeight: 600, fontSize: 14 }}>{apptTab === "upcoming" && item.date ? new Date(item.date + "T12:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" }) + " " + item.time : item.time}</span>
                   <div>
                     <p style={{ margin: 0, fontWeight: 500 }}>{item.client}</p>
                     <p style={{ margin: "4px 0 0", fontSize: 13, color: "#666" }}>{item.service}{item.stylist && isMobile ? ` · ${item.stylist}` : ""}</p>
@@ -274,7 +300,7 @@ export default function Dashboard() {
                   <button onClick={() => cancelAppointment(item.id)} disabled={cancellingId === item.id} title="Cancel appointment" style={{ background: "none", border: "none", color: "#CCC", cursor: "pointer", fontSize: 16, padding: "4px 6px", lineHeight: 1, flexShrink: 0 }}>✕</button>
                 </div>
               ))}
-              {!loadingAppointments && !appointmentsError && appointments.length === 0 && (
+              {!loadingAppointments && !appointmentsError && (apptTab === "today" ? appointments : upcomingAppts).length === 0 && (
                 <div style={{ textAlign: "center", padding: "32px 16px" }}>
                   <p style={{ margin: "0 0 12px", fontSize: 15, color: "#666" }}>No appointments for today yet.</p>
                   {bookingUrl && (
