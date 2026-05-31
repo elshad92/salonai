@@ -71,6 +71,29 @@ See `.env.example` for the full list.
 
 ---
 
+## Analytics
+
+SalonAI ships with [Plausible](https://plausible.io) privacy-friendly analytics.
+
+**3-minute setup:**
+1. Go to [plausible.io](https://plausible.io) → **Start free trial**
+2. Add site `salonai-app.netlify.app` (or your custom domain)
+3. The tracking script is already in `index.html` — no code changes needed
+
+**Tracked events** (fired automatically, no configuration needed):
+
+| Event | Trigger |
+|---|---|
+| `signup` | Successful Google sign-in / new account |
+| `salon_created` | Salon setup saved for the first time |
+| `chat_widget_opened` | Client opens the AI Receptionist chat bubble |
+| `appointment_booked` | AI Receptionist saves a confirmed booking |
+| `telegram_enabled` | Owner saves Telegram bot with `enabled: true` |
+
+When you add a custom domain, update the `data-domain` attribute in `index.html` and add the new domain in your Plausible dashboard under **Settings → Domain**.
+
+---
+
 ## Pricing
 
 | Plan | Price | Stylists |

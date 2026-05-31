@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "../lib/supabase";
+import { trackEvent } from "../lib/analytics";
 
 const ACCENT      = "#C8A96E";
 const WEBHOOK_URL = "https://salonai-app.netlify.app/api/telegram-webhook";
@@ -137,6 +138,8 @@ export default function Messaging() {
     }
 
     // Register Telegram webhook if token is provided
+    if (tgForm.enabled) trackEvent("telegram_enabled");
+
     if (tgForm.bot_token.trim() && tgForm.enabled) {
       setWebhookChecking(true);
       try {
