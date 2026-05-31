@@ -28,6 +28,8 @@ export default function SalonSetup() {
   const [masters, setMasters] = useState(DEFAULT_MASTERS);
   const [newService, setNewService] = useState({ name: "", duration: "" });
   const [newMaster, setNewMaster] = useState("");
+  const [saveError, setSaveError] = useState("");
+  const [savedSlug, setSavedSlug] = useState("");
 
   useEffect(() => {
     async function load() {
@@ -60,6 +62,8 @@ export default function SalonSetup() {
   async function handleSave(e) {
     e.preventDefault();
     setSaving(true);
+    setSaveError("");
+    setSavedSlug("");
     const { data: { user } } = await supabase.auth.getUser();
     const slug = form.slug || slugify(form.name);
     const payload = { ...form, slug, owner_id: user.id, services, masters };
@@ -72,10 +76,10 @@ export default function SalonSetup() {
     }
     if (!error) {
       if (!salon) trackEvent("salon_created");
-      alert("Saved! Booking link: " + window.location.origin + "/s/" + slug);
-      navigate("/dashboard");
+      setSavedSlug(slug);
+      if (!salon) setSalon({ id: "saved" });
     } else {
-      alert("Error: " + error.message);
+      setSaveError(error.message);
     }
     setSaving(false);
   }
@@ -208,9 +212,32 @@ export default function SalonSetup() {
             </div>
           </section>
 
-          <button type="submit" disabled={saving} style={{ width: "100%", height: 50, borderRadius: 14, background: "#C8A96E", border: "none", color: "#FFF", fontSize: 16, fontWeight: 600, cursor: "pointer" }}>
-            {saving ? "Saving..." : salon ? "Update Salon" : "Create Salon"}
+          <button type="submit" disabled={saving} style={{ width: "100%", height: 50, borderRadius: 14, background: "#C8A96E", border: "none", color: "#FFF", fontSize: 16, fontWeight: 600, cursor: saving ? "wait" : "pointer" }}>
+            {saving ? "Saving…" : salon ? "Update Salon" : "Create Salon"}
           </button>
+
+          {savedSlug && (
+            <div style={{ marginTop: 14, padding: "16px 20px", borderRadius: 14, background: "#F0FFF4", border: "1px solid #A7F3D0" }}>
+              <p style={{ margin: "0 0 6px", fontSize: 14, fontWeight: 600, color: "#065F46" }}>✅ Saved!</p>
+              <p style={{ margin: "0 0 10px", fontSize: 13, color: "#047857" }}>
+                Booking link: <strong>{window.location.origin}/s/{savedSlug}</strong>
+              </p>
+              <div style={{ display: "flex", gap: 10 }}>
+                <button type="button" onClick={() => { navigator.clipboard.writeText(window.location.origin + "/s/" + savedSlug); }} style={{ padding: "7px 14px", borderRadius: 10, background: "#065F46", border: "none", color: "#FFF", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
+                  Copy link
+                </button>
+                <Link to="/dashboard" style={{ padding: "7px 14px", borderRadius: 10, border: "1px solid #A7F3D0", color: "#065F46", fontSize: 13, fontWeight: 500, textDecoration: "none", display: "inline-flex", alignItems: "center" }}>
+                  Go to Dashboard →
+                </Link>
+              </div>
+            </div>
+          )}
+
+          {saveError && (
+            <div style={{ marginTop: 14, padding: "14px 18px", borderRadius: 14, background: "#FFF5F5", border: "1px solid #FECACA" }}>
+              <p style={{ margin: 0, fontSize: 14, color: "#C62828" }}>Error: {saveError}</p>
+            </div>
+          )}
         </form>
       </div>
     </div>
