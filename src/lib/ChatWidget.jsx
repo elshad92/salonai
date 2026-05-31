@@ -197,6 +197,8 @@ export default function ChatWidget() {
           onChange={e=>setInput(e.target.value)}
           placeholder="Type a message..."
           autoComplete="off"
+          data-testid="chat-message-input"
+          aria-label="Type message"
           style={{flex:1, height:44, borderRadius:12, border:"1px solid #E0E0E0", padding:"0 14px", fontSize:14, outline:"none", minWidth:0}}
         />
         <button
