@@ -43,6 +43,16 @@ export default function SalonPage() {
       date, time,
     });
     if (!error) {
+      // Fire-and-forget email notification
+      fetch("/api/booking-notify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          salon_id: salon.id,
+          booking: { name, phone, service: selectedService, master: selectedMaster || "Any", date, time },
+        }),
+      }).catch(() => {});
+
       // Update loyalty
       const { data: existing } = await supabase
         .from("loyalty")

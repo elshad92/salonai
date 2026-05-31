@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+Disallow: /dashboard
+Disallow: /salon-setup
+Disallow: /marketing
+Disallow: /analyst
+Disallow: /messaging
+Disallow: /whatsapp
+
+Sitemap: https://salonai-app.netlify.app/sitemap.xml

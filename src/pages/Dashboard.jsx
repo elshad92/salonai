@@ -217,6 +217,28 @@ export default function Dashboard() {
           ))}
         </section>
 
+        {/* Upgrade banner — hidden once VITE_STRIPE_SOLO_LINK is set and user is on a plan */}
+        {import.meta.env.VITE_STRIPE_SOLO_LINK && (
+          <div style={{ background: "linear-gradient(135deg,#111 0%,#1A1A1A 100%)", borderRadius: 16, padding: "16px 20px", marginBottom: 20, display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
+            <div>
+              <p style={{ margin: 0, fontSize: 14, fontWeight: 600, color: "#FFF" }}>🚀 You&apos;re on the free plan</p>
+              <p style={{ margin: "4px 0 0", fontSize: 13, color: "#AAA" }}>Upgrade to unlock unlimited bookings, reminders and AI agents.</p>
+            </div>
+            <div style={{ display: "flex", gap: 10 }}>
+              {import.meta.env.VITE_STRIPE_SOLO_LINK && (
+                <a href={import.meta.env.VITE_STRIPE_SOLO_LINK} target="_blank" rel="noopener noreferrer" style={{ padding: "9px 16px", borderRadius: 999, background: "#C8A96E", color: "#111", fontSize: 13, fontWeight: 700, textDecoration: "none", whiteSpace: "nowrap" }}>
+                  Solo $19/mo →
+                </a>
+              )}
+              {import.meta.env.VITE_STRIPE_PRO_LINK && (
+                <a href={import.meta.env.VITE_STRIPE_PRO_LINK} target="_blank" rel="noopener noreferrer" style={{ padding: "9px 16px", borderRadius: 999, border: "1px solid #444", color: "#EEE", fontSize: 13, fontWeight: 500, textDecoration: "none", whiteSpace: "nowrap" }}>
+                  Pro $99/mo
+                </a>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Main grid */}
         <section style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "minmax(0, 2fr) minmax(300px, 1fr)", gap: 14, marginBottom: 14 }}>
           {/* Today's appointments */}
